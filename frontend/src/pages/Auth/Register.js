@@ -20,18 +20,32 @@ const Register = () => {
     password: "",
     address: "",
   });
-
+  const [branches, setBranches] = useState([]);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    axios.get('http://localhost:8081/getbranch')
+      .then(response => {
+        setBranches(response.data);
+      })
+      .catch(error => {
+        console.error("Error fetching branches:", error);
+      });
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:8081/register', data);
+      const formData = {
+        ...data,
+        branch: data.branch, 
+      };
+      const response = await axios.post('http://localhost:8081/register',  formData);
       
       console.log("Registration successful:", response.data);
       toast.success("Registration successful");   
-      navigate('/login');
+      window.location.reload();
     } catch (error) {
       
       console.error("Registration error:", error);
@@ -97,17 +111,22 @@ const Register = () => {
                 </Form.Control>
               </Form.Group>
 
-              <Form.Group controlId="branch">
+              <Form.Group controlId="formBasicBranch">
                 <Form.Label>Select Branch:</Form.Label>
                 <Form.Control
-                  type="branch"
+                  as="select"
                   name="branch"
-
                   value={data.branch}
                   onChange={handleInputChange}
-                  placeholder="Enter branch"
                   required
-                />
+                >
+                  <option value="">Select a branch</option>
+                  {branches.map(branch => (
+                    <option key={branch.bid} value={branch.name}>
+                      {branch.name}
+                    </option>
+                  ))}
+                </Form.Control>
               </Form.Group>
 
               <Form.Group controlId="formBasicEmail">

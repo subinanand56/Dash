@@ -10,8 +10,6 @@ const BranchForm = () => {
   const [branches, setBranches] = useState([]);
   const [selectedBranch, setSelectedBranch] = useState(null);
   const [name, setName] = useState("");
-  const [editingBranchId, setEditingBranchId] = useState(null);
-  const [editedName, setEditedName] = useState("");
   const [visible, setVisible] = useState(false);
   const [selected, setSelected] = useState(null);
   const [updatedName, setUpdatedName] = useState("");
@@ -24,7 +22,7 @@ const BranchForm = () => {
   const fetchBranches = async () => {
     try {
       const response = await axios.get("http://localhost:8081/getbranch");
-      setBranches(response.data); // Update branches state with fetched data
+      setBranches(response.data); 
     } catch (error) {
       console.error("Error fetching branches: ", error);
       // Handle fetch error here
@@ -130,7 +128,7 @@ const BranchForm = () => {
                 <thead>
                   <tr>
                     <th>Branch Name</th>
-                    <th>Action</th>
+                    <th> </th>
                   </tr>
                 </thead>
                 <tbody>
