@@ -12,7 +12,7 @@ const Tables = () => {
   const [salesData, setSalesData] = useState([]);
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
-  const [totalAmount, setTotalAmount] = useState(0);
+  
 
   useEffect(() => {
     fetchBranches();

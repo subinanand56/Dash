@@ -4,49 +4,37 @@ import toast from 'react-hot-toast';
 import axios from 'axios';
 
 const ExpenseForm = () => {
-  const [branches, setBranches] = useState([]);
   const [selectedBranch, setSelectedBranch] = useState('');
+  const [currentDate, setCurrentDate] = useState(
+    new Date().toISOString().substr(0, 10)
+  ); 
   const [expenses, setExpenses] = useState([
     {
-      expenseItem: '',
-      amount: '',
-      receipt: null,
+      item: "",
+      price: "",
+      date: "",
     },
   ]);
 
-  const getAllBranches = async () => {
-    try {
-      const response = await axios.get(`https://web-final-etmp.onrender.com/api/v1/branch/get-branch`);
-      if (response.data?.success) {
-        setBranches(response.data.branch);
-      } else {
-        toast.error(response.data?.message || 'Something went wrong in getting branches');
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error('Network Error: Unable to connect to the API server');
-    }
-  };
-
   useEffect(() => {
-    getAllBranches();
-    const authData = JSON.parse(localStorage.getItem('auth'));
-    const branch = authData?.user?.branch;
 
-    if (authData && authData.success) {
-      setSelectedBranch(branch);
-    } else {
-      console.log('User is not authenticated');
+    const branchFromLocalStorage = localStorage.getItem("branch");
+  
+    if (branchFromLocalStorage) {
+      setSelectedBranch(branchFromLocalStorage);
     }
   }, []);
+ 
+
+
 
   const handleAddExpense = () => {
     setExpenses([
       ...expenses,
       {
-        expenseItem: '',
-        amount: '',
-        receipt: null,
+        item: "",
+        price: "",
+        date: "",
       },
     ]);
   };
@@ -59,40 +47,35 @@ const ExpenseForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
       const promises = expenses.map(async (expense) => {
-        const { expenseItem, amount } = expense;
-        
-        try {
-          const response = await axios.post(
-            `https://web-final-etmp.onrender.com/api/v1/expense/add-expense`,
-            {
-              expenseName: expenseItem,
-              amount: Number(amount),
-              branch: selectedBranch,
-            }
-          );
-          return response.data;
-        } catch (error) {
-          console.error(error);
-          return { success: false };
-        }
+        const response = await axios.post("http://localhost:8081/expense", {
+          item: expense.item,
+          price: expense.price,
+          date: expense.date || currentDate,
+          branch: selectedBranch,
+        });
+        return response.data;
       });
-
       const responses = await Promise.all(promises);
-
       const success = responses.every((res) => res.success);
-
       if (success) {
-        toast.success('Expenses added successfully');
         window.location.reload();
+        toast.success("expense added successfully");
+        setExpenses([
+          ...expenses,
+          {
+            item: "",
+            price: "",
+            date: "",
+          },
+        ]);
+        setSelectedBranch("");
       } else {
-        toast.error('Failed to add expenses');
+        toast.error("Failed to add expense");
       }
     } catch (error) {
       console.error(error);
-      toast.error('Network Error: Unable to connect to the API server');
     }
   };
 
@@ -108,34 +91,34 @@ const ExpenseForm = () => {
                   <Form.Label>Branch:</Form.Label>
                   <Form.Control
                     type="text"
-                    value={
-                      branches.find((b) => b._id === selectedBranch)?.name || ''
-                    }
+                    value={selectedBranch}
                     readOnly
                   />
                 </Form.Group>
 
-                <Form.Group controlId={`expenseItem-${index}`}>
+                <Form.Group controlId={`item-${index}`}>
                   <Form.Label>Expense Item:</Form.Label>
                   <Form.Control
                     type="text"
                     value={expense.expenseItem}
                     onChange={(e) =>
-                      handleExpenseInputChange(index, 'expenseItem', e.target.value)
+                      handleExpenseInputChange(index, 'item', e.target.value)
                     }
+                    required
                   />
                 </Form.Group>
               </Col>
 
               <Col md={6}>
-                <Form.Group controlId={`amount-${index}`}>
+                <Form.Group controlId={`price-${index}`}>
                   <Form.Label>Amount:</Form.Label>
                   <Form.Control
                     type="number"
                     value={expense.amount}
                     onChange={(e) =>
-                      handleExpenseInputChange(index, 'amount', e.target.value)
+                      handleExpenseInputChange(index, 'price', e.target.value)
                     }
+                    required
                   />
                 </Form.Group>
               </Col>

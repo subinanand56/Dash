@@ -11,43 +11,23 @@ const RPurchase = () => {
       companyName: "",
       price: "",
       photo: null,
+      date: "",
     },
   ]);
   const [selectedBranch, setSelectedBranch] = useState("");
 
  
   useEffect(() => {
-    const authData = JSON.parse(localStorage.getItem("auth"));
-    const branch = authData?.user?.branch;
 
-    if (authData && authData.success) {
-      setSelectedBranch(branch);
-    } else {
-      console.log("User is not authenticated");
+    const branchFromLocalStorage = localStorage.getItem("branch");
+  
+    if (branchFromLocalStorage) {
+      setSelectedBranch(branchFromLocalStorage);
     }
   }, []);
+ 
 
-  const getAllBranches = async () => {
-    try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_API}/api/v1/branch/get-branch`
-      );
-      if (response.data?.success) {
-        setBranches(response.data.branch);
-      } else {
-        toast.error(
-          response.data?.message || "Something went wrong in getting branches"
-        );
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("Network Error: Unable to connect to the API server");
-    }
-  };
 
-  useEffect(() => {
-    getAllBranches();
-  }, []);
 
   const handleAddPurchaseRequest = () => {
     setPurchaseRequests([
@@ -57,6 +37,7 @@ const RPurchase = () => {
         companyName: "",
         price: "",
         photo: null,
+        date: "",
       },
     ]);
   };
@@ -71,82 +52,13 @@ const RPurchase = () => {
     }
     setPurchaseRequests(updatedPurchaseRequests);
   };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    try {
-      const authData = JSON.parse(localStorage.getItem("auth"));
-      const userId = authData?.user?._id;
-      console.log("userId:", userId);
-
-      const promises = purchaseRequests.map(async (request) => {
-        
-        const productData = new FormData();
-        productData.append("productName", request.productName);
-        productData.append("companyName", request.companyName);
-        productData.append("price", request.price);
-        productData.append("branch", selectedBranch);
-        productData.append("photo", request.photo);
-        productData.append("user", userId);
-        console.log("Request data:", request); 
-
-        const { data } = await axios.post(
-          `${process.env.REACT_APP_API}/api/v1/purchaserqst/add-purchaserqst`,
-          productData
-        );
-        return data;
-      });
-
-      const responses = await Promise.all(promises);
-
-      const success = responses.every((res) => res.success);
-
-      if (success) {
-        toast.success("Purchase requests added successfully");
-        window.location.reload();
-      } else {
-        toast.error("Failed to add purchase requests");
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("Network Error: Unable to connect to the API server");
-    }
+    
   };
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
 
-  //   try {
-  //     const promises = purchaseRequests.map(async (request) => {
-  //       const productData = new FormData();
-  //       productData.append("productName", request.productName);
-  //       productData.append("companyName", request.companyName);
-  //       productData.append("price", request.price);
-  //       productData.append("branch", selectedBranch);
-  //       productData.append("photo", request.photo);
-        
-
-  //       const { data } = await axios.post(
-  //         `${process.env.REACT_APP_API}/api/v1/purchaserqst/add-purchaserqst`,
-  //         productData
-  //       );
-  //       return data;
-  //     });
-
-  //     const responses = await Promise.all(promises);
-
-  //     const success = responses.every((res) => res.success);
-
-  //     if (success) {
-  //       toast.success("Purchase requests added successfully");
-  //       window.location.reload();
-  //     } else {
-  //       toast.error("Failed to add purchase requests");
-  //     }
-  //   } catch (error) {
-  //     console.error(error);
-  //     toast.error("Network Error: Unable to connect to the API server");
-  //   }
-  // };
 
   return (
     <Container>
@@ -160,9 +72,7 @@ const RPurchase = () => {
                   <Form.Label>Branch:</Form.Label>
                   <Form.Control
                     type="text"
-                    value={
-                      branches.find((b) => b._id === selectedBranch)?.name || ""
-                    }
+                    value={selectedBranch}
                     readOnly
                   />
                 </Form.Group>

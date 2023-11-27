@@ -33,6 +33,7 @@ const Login = () => {
   
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('role', response.data.role);
+        localStorage.setItem('branch', response.data.branch);
   
         if (userRole === 'admin') {
           navigate('/admin-dashboard');

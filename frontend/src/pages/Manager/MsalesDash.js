@@ -29,9 +29,7 @@ const MsalesDash = () => {
       <div className="Admin-Dashboard">
         <div className="App-Glass">
         <MSidebar/>
-        <SalesForm/>
-        
-          
+        <SalesForm/>    
         </div>
       </div>
     </SalesDashContainer>

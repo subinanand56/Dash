@@ -2,6 +2,8 @@ import express from "express";
 import cors from "cors";
 import mysql from "mysql";
 import jwt from "jsonwebtoken";
+import multer from "multer";
+import path from "path";
 
 const app = express();
 app.use(cors());
@@ -24,6 +26,20 @@ db.connect((err) => {
   console.log("MySQL Connected...");
 });
 
+const storage = multer.diskStorage({
+  destination:(req, file, cb)=>{
+    cb(null, 'public/images')
+  },
+  filename: (req, file ,cb)=>{
+    cb(null, file.fieldname + "_" + Date.now() + path.extname(file.originalname));
+  }
+})
+
+const upload = multer({
+  storage: storage
+})
+
+
 app.post("/register", (req, res) => {
   const sql =
     "INSERT INTO register (`name`,`email`,`branch`,`role`,`password`,`phone`,`address`)VALUES (?)";
@@ -42,6 +58,47 @@ app.post("/register", (req, res) => {
   });
 });
 
+// app.post("/login", (req, res) => {
+//   const email = req.body.email;
+//   const password = req.body.password;
+
+//   const sql = "SELECT * FROM register WHERE email = ? AND password = ?";
+//   db.query(sql, [email, password], (err, result) => {
+//     if (err) return res.json(err);
+
+//     if (result.length > 0) {
+//       const roleQuery = "SELECT role FROM register WHERE email = ?";
+//       const branchQuery = "SELECT branch FROM register WHERE email = ?";
+//       db.query(roleQuery,branchQuery, [email], (roleErr ,branchErr,branchResult, roleResult) => {
+//         if (roleErr) return res.json(roleErr);
+
+//         if (roleResult.length > 0) {
+//           const name = result[0].name;
+//           const role = roleResult[0].role; 
+
+//           const token = jwt.sign(
+//             { name, role },
+//             "qwertyuiopasdfghjklzxcvbnmqwertyui"
+//           );
+
+//           return res.json({
+//             success: true,
+//             message: "Login successful",
+//             role,
+//             token,
+//           });
+//         } else {
+//           return res.json({
+//             success: false,
+//             message: "Role not found for the user",
+//           });
+//         }
+//       });
+//     } else {
+//       return res.json({ success: false, message: "Invalid email or password" });
+//     }
+//   });
+// });
 app.post("/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
@@ -52,23 +109,39 @@ app.post("/login", (req, res) => {
 
     if (result.length > 0) {
       const roleQuery = "SELECT role FROM register WHERE email = ?";
+      const branchQuery = "SELECT branch FROM register WHERE email = ?";
+      
       db.query(roleQuery, [email], (roleErr, roleResult) => {
         if (roleErr) return res.json(roleErr);
 
         if (roleResult.length > 0) {
-          const name = result[0].name;
-          const role = roleResult[0].role; // Fetch the role from the result
+          // Fetch branch information after fetching role
+          db.query(branchQuery, [email], (branchErr, branchResult) => {
+            if (branchErr) return res.json(branchErr);
 
-          const token = jwt.sign(
-            { name, role },
-            "qwertyuiopasdfghjklzxcvbnmqwertyui"
-          );
+            if (branchResult.length > 0) {
+              const name = result[0].name;
+              const role = roleResult[0].role;
+              const branch = branchResult[0].branch;
 
-          return res.json({
-            success: true,
-            message: "Login successful",
-            role,
-            token,
+              const token = jwt.sign(
+                { name, role, branch }, // Include branch information in the token payload
+                "qwertyuiopasdfghjklzxcvbnmqwertyui"
+              );
+
+              return res.json({
+                success: true,
+                message: "Login successful",
+                role,
+                branch,
+                token,
+              });
+            } else {
+              return res.json({
+                success: false,
+                message: "Branch not found for the user",
+              });
+            }
           });
         } else {
           return res.json({
@@ -82,6 +155,7 @@ app.post("/login", (req, res) => {
     }
   });
 });
+
 
 app.get("/users", (req, res) => {
   const sql = "SELECT * FROM register ";
@@ -332,9 +406,9 @@ app.get("/getexpenses", (req, res) => {
   });
 });
 
-app.post("/purchase", (req, res) => {
+app.post("/purchase",upload.single('image'),(req, res) => {
   const sql =
-    "INSERT INTO purchase (`productName`,`price`,`branch`,`companyName`,`accepted`,`date`)VALUES (?)";
+    "INSERT INTO purchase (`productName`,`price`,`branch`,`companyName`,`accepted`,`date`,`image`)VALUES (?)";
   const data = [
     req.body.productName,
     req.body.price,
@@ -342,6 +416,7 @@ app.post("/purchase", (req, res) => {
     req.body.companyName, 
     req.body.accepted,
     req.body.date,
+    req.file.filename
   ];
   db.query(sql, [data], (err, result) => {
     if (err) return res.json(err);

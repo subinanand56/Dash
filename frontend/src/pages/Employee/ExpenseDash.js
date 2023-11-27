@@ -9,11 +9,8 @@ const ExpenseDash = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-      const authData = JSON.parse(localStorage.getItem("auth"));
-      const role = authData?.user?.role;
-      const token = authData?.token;
-      console.log("Role:", role);
-      console.log("Token:", token);
+      const role = localStorage.getItem('role');
+    const token = localStorage.getItem('token');
   
       if (role === "employee" && token) {
         navigate("/eexpensedash")
