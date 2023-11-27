@@ -23,7 +23,8 @@ const ProductForm = () => {
       if (data?.success) {
         toast.success(`${name} is created`);
         setName("");
-        window.location.reload();
+        fetchProducts();
+        
       } else {
         toast.error(data.message);
       }
@@ -50,62 +51,43 @@ const ProductForm = () => {
   }, []);
 
   const handleRowClick = (product) => {
-    if (selectedProduct === product) {
-      setSelectedProduct(null);
-      setSelected(null);
-    } else {
-      setSelectedProduct(product);
-      setSelected(product);
-    }
-  };
-  const handleUpdate = async () => {
-    try {
-      const response = await axios.put(
-        `http://localhost:8081/updatebranch/${selectedProduct?.id}`,
-        {
-          name: updatedName || selectedProduct?.name,
-        }
-      );
-      if (response.data?.success) {
-        toast.success(`Product updated successfully`);
-        fetchProducts();
-        toast.error(response.data.message);
+    setSelectedProduct((prevProduct) => {
+      if (prevProduct === product) {
+        return null;
+      } else {
+        return product;
       }
-    } catch (error) {
-      toast.error("Failed to update product");
-      console.error("Error updating product: ", error);
-    }
+    });
+    setSelected(product); 
   };
 
- 
-  const handleDelete = async () => {};
+  const handleDelete = async (productId) => {
+    if (!productId) {
+      console.error("Product ID is undefined");
+      return;
+    }
+    try {
+      const response = await axios.delete(
+        `http://localhost:8081/product/${productId}`
+      );
+      if (response.data?.message === "Product deleted successfully") {
+        toast.success("Product deleted successfully");
+        fetchProducts();
+      } else {
+        toast.error(response.data?.message || "Failed to delete product");
+      }
+    } catch (error) {
+      toast.error("Failed to delete product");
+      console.error("Error deleting product: ", error);
+    }
+  };
   return (
     <ProductContainer>
       <Row className="mt-5 justify-content-center">
         <Col md={12} lg={6} className="mb-5">
           <Card>
             <Card.Body>
-              <Modal
-                onCancel={() => setVisible(false)}
-                footer={null}
-                visible={visible}
-              >
-                <Form onSubmit={handleUpdate}>
-                  <Form.Group className="mb-3">
-                    <Form.Control
-                      className="mb-3"
-                      type="text"
-                      placeholder="Enter new product"
-                      value={updatedName}
-                      onChange={(e) => setUpdatedName(e.target.value)}
-                    />
-                  </Form.Group>
-                  <Button variant="primary" type="submit">
-                    Update
-                  </Button>
-                </Form>
-              </Modal>
-              <h2 className="text-center pt-3">Products</h2>
+              <h5 className="text-center pt-3">Products</h5>
               <Table responsive>
                 <thead>
                   <tr>
@@ -122,20 +104,20 @@ const ProductForm = () => {
                       <td onClick={() => handleRowClick(product)}>
                         {selectedProduct === product && (
                           <>
-                            <Button
+                            {/* <Button
                               variant="primary ms-2"
                               onClick={() => {
                                 setVisible(true);
-                                setUpdatedName(product.name);
-                                setSelected(product);
+                                setUpdatedName(product?.name); // Use product directly here
+                                setSelectedProduct(product); // Set the selectedProduct here
                               }}
                             >
                               Edit
-                            </Button>
+                            </Button> */}
                             <Button
                               variant="danger ms-2"
                               onClick={() => {
-                                handleDelete(product.bid);
+                                handleDelete(product.id);
                               }}
                             >
                               Delete
@@ -153,7 +135,7 @@ const ProductForm = () => {
         <Col md={12} lg={6}>
           <Card>
             <Card.Body className="text-center">
-              <h2 className="text-center pt-3"> Add Products</h2>
+              <h5 className="text-center pt-3"> Add Products</h5>
 
               <Form onSubmit={handleSubmit}>
                 <Form.Group className="mb-3">

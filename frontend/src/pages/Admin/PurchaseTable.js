@@ -1,115 +1,100 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { Table, Button } from 'react-bootstrap';
-import { toast } from 'react-toastify';
-import { saveAs } from 'file-saver';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { Table, Button } from "react-bootstrap";
+import { toast } from "react-toastify";
+import { saveAs } from "file-saver";
 
 const PurchaseTable = () => {
   const [branches, setBranches] = useState([]);
-  const [selectedBranch, setSelectedBranch] = useState('all');
+  const [selectedBranch, setSelectedBranch] = useState("all");
   const [purchaseData, setPurchaseData] = useState([]);
-  const [fromDate, setFromDate] = useState('');
-  const [toDate, setToDate] = useState('');
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
 
-  const getAllBranches = async () => {
+  useEffect(() => {
+    fetchBranches();
+    setDefaultDateRange();
+  }, []);
+
+  const setDefaultDateRange = () => {
+    const currentDate = new Date();
+    const defaultFromDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const defaultToDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+
+    setFromDate(defaultFromDate.toISOString().split('T')[0]);
+    setToDate(defaultToDate.toISOString().split('T')[0]);
+  };
+
+  const fetchBranches = async () => {
     try {
-      const response = await axios.get(`${process.env.REACT_APP_API}/api/v1/branch/get-branch`);
-      if (response.data?.success) {
-        setBranches(response.data.branch);
-      } else {
-        toast.error(response.data?.message || 'Something went wrong in getting branches');
-      }
+      const response = await axios.get("http://localhost:8081/getbranch");
+      setBranches(response.data);
     } catch (error) {
-      console.error(error);
-      toast.error('Network Error: Unable to connect to the API server');
+      console.error("Error fetching branches: ", error);
     }
   };
 
-  const getAllPurchases = async (branchId = 'all') => {
-    try {
-      let endpoint = `${process.env.REACT_APP_API}/api/v1/purchaserqst/admin-purchase-requests`;
-
-      if (branchId !== 'all') {
-        endpoint = `${process.env.REACT_APP_API}/api/v1/purchaserqst/admin-purchase-requests/${branchId}`;
-      }
-
-      const response = await axios.get(endpoint);
-      setPurchaseData(response.data.purchaseRequests);
-    } catch (error) {
-      console.error('Error fetching purchases:', error);
-      toast.error('Failed to fetch purchases. Please try again.');
+  useEffect(() => {
+    if (selectedBranch === 'all') {
+      handleDateRangeSelect();
+    } else {
+      fetchPurchaseData (selectedBranch);
     }
+  }, [selectedBranch, fromDate, toDate]);
+
+  const filterPurchaseByDate = (data) => {
+    const fromDateValue = fromDate ? new Date(fromDate) : null;
+    const toDateValue = toDate ? new Date(toDate) : null;
+
+    const filteredPurchaseData = data.filter((purchase) => {
+      const purchaseDate = new Date(purchase.date);
+      purchaseDate.setHours(0, 0, 0, 0);
+
+      if (fromDateValue && toDateValue) {
+        return purchaseDate >= fromDateValue && purchaseDate <= toDateValue;
+      } else {
+        return true;
+      }
+    });
+
+    return filteredPurchaseData;
   };
 
   const handleDateRangeSelect = async () => {
     try {
-      let endpoint = `${process.env.REACT_APP_API}/api/v1/purchaserqst/admin-purchase-requests`;
-
-      if (selectedBranch !== 'all') {
-        endpoint = `${process.env.REACT_APP_API}/api/v1/purchaserqst/admin-purchase-requests/${selectedBranch}`;
-      }
-
-      const response = await axios.get(endpoint);
-
-      const filteredPurchases = response.data.purchaseRequests.filter((purchase) => {
-        const purchaseDate = new Date(purchase.updatedAt).getTime();
-        const fromDateTimestamp = fromDate ? new Date(fromDate).getTime() : 0;
-        let toDateTimestamp = toDate ? new Date(toDate).getTime() : Number.MAX_SAFE_INTEGER;
-        toDateTimestamp = new Date(toDateTimestamp + 24 * 60 * 60 * 1000).getTime();
-
-        return purchaseDate >= fromDateTimestamp && purchaseDate <= toDateTimestamp;
-      });
-
-      setPurchaseData(filteredPurchases);
+      const response = await axios.get(`http://localhost:8081/getpurchases`);
+      const filteredData = filterPurchaseByDate(response.data);
+      setPurchaseData(filteredData);
     } catch (error) {
-      console.error('Error fetching purchases:', error);
-      toast.error('Failed to fetch purchases. Please try again.');
+      console.error('Error fetching purchase data: ', error);
+      setPurchaseData([]);
     }
   };
 
-  useEffect(() => {
-    getAllBranches();
-    const oneMonthAgo = new Date();
-    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-    setFromDate(oneMonthAgo.toISOString().split('T')[0]);
-    setToDate(new Date().toISOString().split('T')[0]);
-    getAllPurchases();
-  }, []);
-
-  useEffect(() => {
-    getAllPurchases(selectedBranch);
-  }, [selectedBranch]);
-
-  useEffect(() => {
-    handleDateRangeSelect();
-  }, [fromDate, toDate]);
-
-  const generateAndDownloadInvoice = () => {
-    const headers = ['Branch', 'Product Name', 'Company Name', 'Price'];
-    const csvContent = [
-      headers.join(','),
-      ...purchaseData.map((purchase) => {
-        const branchName =
-          selectedBranch === 'all'
-            ? purchase.branch.name
-            : branches.find((branch) => branch._id === selectedBranch)?.name || '';
-        return [branchName, purchase.productName, purchase.companyName, purchase.price].join(',');
-      }),
-    ].join('\n');
-
-    const totalPurchaseAmount = purchaseData.reduce((total, purchase) => total + purchase.price, 0);
-
-    const csvWithTotal = `${csvContent}\nTotal Purchase Amount,${totalPurchaseAmount}`;
-
-    const blob = new Blob([csvWithTotal], { type: 'text/csv;charset=utf-8;' });
-    saveAs(blob, 'purchase_invoice.csv');
+  const fetchPurchaseData = async (branchId) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:8081/getpurchases?branch=${branchId}`
+      );
+      const filteredData = filterPurchaseByDate(response.data);
+      setPurchaseData(filteredData);
+    } catch (error) {
+      console.error('Error fetching purchase data: ', error);
+      setPurchaseData([]);
+    }
   };
-const totalPurchaseAmount = purchaseData.reduce((total, purchase) => total + purchase.price, 0);
+
+  const calculateTotalAmount = () => {
+    return purchaseData.reduce((total, purchase) => total + purchase.price, 0);
+  };
  
   return (
     <div>
-      <h1>Purchases</h1>
-      <select value={selectedBranch} onChange={(e) => setSelectedBranch(e.target.value)}>
+      <h5>Purchases</h5>
+      <select
+        value={selectedBranch}
+        onChange={(e) => setSelectedBranch(e.target.value)}
+      >
         <option value="all">All</option>
         {branches.map((branch) => (
           <option key={branch._id} value={branch._id}>
@@ -119,18 +104,20 @@ const totalPurchaseAmount = purchaseData.reduce((total, purchase) => total + pur
       </select>
       <label>
         From:
-        <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
+        <input
+          type="date"
+          value={fromDate}
+          onChange={(e) => setFromDate(e.target.value)}
+        />
       </label>
       <label>
         To:
-        <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} />
+        <input
+          type="date"
+          value={toDate}
+          onChange={(e) => setToDate(e.target.value)}
+        />
       </label>
-
-   
-        <Button className='m-1' variant="primary" onClick={generateAndDownloadInvoice}>
-          Download
-        </Button>
-  
 
       <div>
         <Table striped bordered hover responsive>
@@ -143,24 +130,19 @@ const totalPurchaseAmount = purchaseData.reduce((total, purchase) => total + pur
             </tr>
           </thead>
           <tbody>
-            {purchaseData.map((purchase) => {
-              const branchName =
-                selectedBranch === 'all'
-                  ? purchase.branch.name
-                  : branches.find((branch) => branch._id === selectedBranch)?.name || '';
-
-              return (
-                <tr key={purchase._id}>
-                  <td>{branchName}</td>
-                  <td>{purchase.productName}</td>
-                  <td>{purchase.companyName}</td>
-                  <td>{purchase.price}</td>
-                </tr>
-              );
-            })}
+          {purchaseData.map((purchase, index) => (
+              <tr key={index}>
+                <td>{purchase.branch}</td>
+                <td>{purchase.productName}</td>
+                <td>{purchase.companyName}</td>
+                <td>{purchase.price}</td>
+              </tr>
+            ))}
             <tr>
-              <td colSpan="3"><strong>Total Purchase Amount:</strong></td>
-              <td>{totalPurchaseAmount}</td>
+              <td colSpan="3">
+                <strong>Total Purchase Amount:</strong>
+              </td>
+              <td colSpan="3">{calculateTotalAmount()}</td>
             </tr>
           </tbody>
         </Table>

@@ -1,105 +1,106 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Form, Button, Container, Row, Col } from "react-bootstrap";
 import toast from "react-hot-toast";
 import axios from "axios";
 
 const Adminsales = () => {
-    const [branches, setBranches] = useState([]);
-    const [selectedBranch, setSelectedBranch] = useState("");
+  const navigate = useNavigate();
+  const [branches, setBranches] = useState([]);
+  const [selectedBranch, setSelectedBranch] = useState("");
+  const [currentDate, setCurrentDate] = useState(
+    new Date().toISOString().substr(0, 10)
+  ); 
+
   const [sales, setSales] = useState([
     {
       name: "",
-      amount: "",
+      price: "",
       quantity: "",
-      quantityUnit: "ton",
+      date: "",
+      unit: "ton",
     },
   ]);
-
   const [products, setProducts] = useState([]);
 
-  const getAllBranches = async () => {
-    try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_API}/api/v1/branch/get-branch`
-      );
-      if (response.data?.success) {
-        setBranches(response.data.branch);
-      } else {
-        toast.error(
-          response.data?.message || "Something went wrong in getting branches"
-        );
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("Network Error: Unable to connect to the API server");
-    }
-  };
-
-  const getAllProducts = async () => {
-    try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_API}/api/v1/product/get-product`
-      );
-      if (response.data?.success) {
-        setProducts(response.data.product);
-      } else {
-        toast.error(
-          response.data?.message || "Something went wrong in getting products"
-        );
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("Network Error: Unable to connect to the API server");
-    }
-  };
-
   useEffect(() => {
-    getAllBranches();
-    getAllProducts();
+    fetchBranches();
+    fetchProducts();
   }, []);
+
+  const fetchBranches = async () => {
+    try {
+      const response = await axios.get("http://localhost:8081/getbranch");
+      setBranches(response.data);
+    } catch (error) {
+      console.error("Error fetching branches: ", error);
+    }
+  };
+
+  const fetchProducts = async () => {
+    try {
+      const response = await axios.get("http://localhost:8081/product");
+      setProducts(response.data);
+    } catch (error) {
+      console.error("Error fetching products: ", error);
+    }
+  };
 
   const handleAddSale = () => {
     setSales([
       ...sales,
       {
         name: "",
-        amount: "",
+        price: "",
+        date: "",
         quantity: "",
-        quantityUnit: "ton",
+        unit: "ton",
       },
     ]);
   };
+
   const handleSaleInputChange = (index, e) => {
     const { name, value } = e.target;
     const updatedSales = [...sales];
-    updatedSales[index][name] = value;
+    if (name === 'date') {
+      updatedSales[index][name] = value;
+    } else {
+      updatedSales[index][name] = value;
+    }
     setSales(updatedSales);
   };
+  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
       const promises = sales.map(async (sale) => {
-        const response = await axios.post(
-          `${process.env.REACT_APP_API}/api/v1/sales/add-sale`,
-          {
-            name: sale.name,
-            amount: sale.amount,
-            quantity: sale.quantity,
-            quantityUnit: sale.quantityUnit,
-            branch:selectedBranch ,
-          }
-        );
+        const response = await axios.post(`http://localhost:8081/sales`, {
+          name: sale.name,
+          price: sale.price,
+          quantity: sale.quantity,
+          unit: sale.unit,
+          branch: selectedBranch,
+          date: sale.date || currentDate,
+        });
         return response.data;
       });
-
       const responses = await Promise.all(promises);
-
       const success = responses.every((res) => res.success);
-
       if (success) {
-        toast.success("Sales added successfully");
         window.location.reload();
+        toast.success("Sales added successfully");
+        setSales([
+          {
+            name: "",
+            price: "",
+            quantity: "",
+            date: "",
+            unit: "ton",
+          },
+        ]);
+        setSelectedBranch("");
       } else {
         toast.error("Failed to add sales");
       }
@@ -108,6 +109,7 @@ const Adminsales = () => {
       toast.error("Network Error: Unable to connect to the API server");
     }
   };
+
   return (
     <Container>
       <h5 className="text-center pt-3">Daily Sales Entry</h5>
@@ -116,16 +118,15 @@ const Adminsales = () => {
           <div key={index}>
             <Row>
               <Col md={6}>
-              <Form.Group controlId={`branch-${index}`}>
+                <Form.Group controlId={`branch-${index}`}>
                   <Form.Label>Branch:</Form.Label>
                   <Form.Control
                     as="select"
                     value={selectedBranch}
                     onChange={(e) => setSelectedBranch(e.target.value)}
+                    required
                   >
-                    <option value="" >
-                      Select a Branch
-                    </option>
+                    <option value="">Select a Branch</option>
                     {branches.map((branch) => (
                       <option key={branch._id} value={branch._id}>
                         {branch.name}
@@ -141,6 +142,7 @@ const Adminsales = () => {
                     value={sale.name}
                     onChange={(e) => handleSaleInputChange(index, e)}
                     name="name"
+                    required
                   >
                     <option value="" disabled>
                       Select a Product
@@ -152,19 +154,6 @@ const Adminsales = () => {
                     ))}
                   </Form.Control>
                 </Form.Group>
-              </Col>
-
-              <Col md={6}>
-                <Form.Group controlId={`amount-${index}`}>
-                  <Form.Label>Amount:</Form.Label>
-                  <Form.Control
-                    type="number"
-                    value={sale.amount}
-                    onChange={(e) => handleSaleInputChange(index, e)}
-                    name="amount"
-                  />
-                </Form.Group>
-
                 <Form.Group controlId={`quantity-${index}`}>
                   <Form.Label>Quantity:</Form.Label>
                   <Row>
@@ -174,14 +163,16 @@ const Adminsales = () => {
                         value={sale.quantity}
                         onChange={(e) => handleSaleInputChange(index, e)}
                         name="quantity"
+                        required
                       />
                     </Col>
                     <Col md={4}>
                       <Form.Control
                         as="select"
-                        value={sale.quantityUnit}
+                        value={sale.unit}
                         onChange={(e) => handleSaleInputChange(index, e)}
-                        name="quantityUnit"
+                        name="unit"
+                        required
                       >
                         <option value="ton">ton</option>
                         <option value="kg">kg</option>
@@ -189,6 +180,32 @@ const Adminsales = () => {
                     </Col>
                   </Row>
                 </Form.Group>
+              </Col>
+
+              <Col md={6}>
+                <Form.Group controlId={`price-${index}`}>
+                  <Form.Label>Price:</Form.Label>
+                  <Form.Control
+                    type="number"
+                    value={sale.price}
+                    onChange={(e) => handleSaleInputChange(index, e)}
+                    name="price"
+                    required
+                  />
+                </Form.Group>
+                
+                <Form.Group controlId={`date-${index}`}>
+                  <Form.Label>Date:</Form.Label>
+                  <Form.Control
+                    type="date"
+                    value={sale.date || currentDate}
+                    onChange={(e) => handleSaleInputChange(index, e)}
+                    name="date"
+                    required
+                  />
+                </Form.Group>
+
+                
               </Col>
             </Row>
           </div>
@@ -198,13 +215,13 @@ const Adminsales = () => {
           <Button variant="primary" onClick={handleAddSale} className="m-2">
             Add More Sale
           </Button>
-          <Button variant="primary" type="submit" >
+          <Button variant="primary" type="submit">
             Submit
           </Button>
         </div>
       </Form>
     </Container>
   );
-}
+};
 
-export default Adminsales
+export default Adminsales;

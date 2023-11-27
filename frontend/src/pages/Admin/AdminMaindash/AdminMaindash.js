@@ -9,7 +9,7 @@ const AdminMaindash = () => {
   return (
     <AdminMaindashContainer>
       <div className="MainDash">
-        <h1>Dashboard</h1>
+        <h5>Dashboard</h5>
         <ScrollableContent>
           <AdminCards/>
           <Tables />

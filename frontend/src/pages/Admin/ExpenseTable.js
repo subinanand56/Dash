@@ -6,121 +6,92 @@ import { saveAs } from "file-saver";
 
 const ExpenseTable = () => {
   const [branches, setBranches] = useState([]);
-  const [expenses, setExpenses] = useState([]);
+  const [expensesData, setExpensesData] = useState([]);
   const [selectedBranch, setSelectedBranch] = useState("all");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
 
-  const getAllBranches = async () => {
-    try {
-      const response = await axios.get(
-        `https://web-final-etmp.onrender.com/api/v1/branch/get-branch`
-      );
-      if (response.data?.success) {
-        setBranches(response.data.branch);
-      } else {
-        toast.error(
-          response.data?.message || "Something went wrong in getting branches"
-        );
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("Network Error: Unable to connect to the API server");
-    }
-  };
-
-  const getAllExpenses = async () => {
-    try {
-      let endpoint = `https://web-final-etmp.onrender.com/api/v1/expense/all-expense`;
-
-      if (selectedBranch !== "all") {
-        endpoint = `https://web-final-etmp.onrender.com/api/v1/expense/all-expense/${selectedBranch}`;
-      }
-
-      const response = await axios.get(endpoint);
-      setExpenses(response.data.expenses);
-    } catch (error) {
-      console.error("Error fetching expenses:", error);
-      toast.error("Failed to fetch expenses. Please try again.");
-    }
-  };
 
   useEffect(() => {
-    getAllBranches();
-    const oneMonthAgo = new Date();
-    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-    setFromDate(oneMonthAgo.toISOString().split("T")[0]);
-    setToDate(new Date().toISOString().split("T")[0]);
+    fetchBranches();
+    setDefaultDateRange();
   }, []);
 
+  const setDefaultDateRange = () => {
+    const currentDate = new Date();
+    const defaultFromDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const defaultToDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+
+    setFromDate(defaultFromDate.toISOString().split('T')[0]);
+    setToDate(defaultToDate.toISOString().split('T')[0]);
+  };
+
+  const fetchBranches = async () => {
+    try {
+      const response = await axios.get("http://localhost:8081/getbranch");
+      setBranches(response.data);
+    } catch (error) {
+      console.error("Error fetching branches: ", error);
+    }
+  };
+
   useEffect(() => {
-    getAllBranches();
-    getAllExpenses();
-    handleDateRangeSelect();
+    if (selectedBranch === 'all') {
+      handleDateRangeSelect();
+    } else {
+      fetchExpenseData (selectedBranch);
+    }
   }, [selectedBranch, fromDate, toDate]);
 
   const handleDateRangeSelect = async () => {
     try {
-      let endpoint = `https://web-final-etmp.onrender.com/api/v1/expense/all-expense`;
-
-      if (selectedBranch !== "all") {
-        endpoint = `https://web-final-etmp.onrender.com/api/v1/expense/all-expense/${selectedBranch}`;
-      }
-
-      const response = await axios.get(endpoint);
-
-      const filteredExpenses = response.data.expenses.filter((expense) => {
-        const expenseDate = new Date(expense.createdAt).getTime();
-        const fromDateTimestamp = fromDate ? new Date(fromDate).getTime() : 0;
-        let toDateTimestamp = toDate
-          ? new Date(toDate).getTime()
-          : Number.MAX_SAFE_INTEGER;
-        toDateTimestamp = new Date(
-          toDateTimestamp + 24 * 60 * 60 * 1000
-        ).getTime();
-
-        return (
-          expenseDate >= fromDateTimestamp && expenseDate <= toDateTimestamp
-        );
-      });
-
-      setExpenses(filteredExpenses);
+      const response = await axios.get(`http://localhost:8081/getexpenses`);
+      setExpensesData(filterExpensesByDate(response.data));
     } catch (error) {
-      console.error("Error fetching expenses:", error);
-      toast.error("Failed to fetch expenses. Please try again.");
+      console.error('Error fetching sales data: ', error);
+      toast.error('Failed to fetch sales data');
+      setExpensesData([]);
     }
   };
 
-  const getTotalAmount = () => {
-    const totalAmount = expenses.reduce(
-      (total, expense) => total + expense.amount,
-      0
-    );
-    return totalAmount.toFixed(2); // Assuming 2 decimal places for amount
+  const fetchExpenseData = async (branchId) => {
+    try {
+      const response = await axios.get(`http://localhost:8081/getexpenses?branch=${branchId}`);
+      setExpensesData(filterExpensesByDate(response.data));
+    } catch (error) {
+      console.error('Error fetching expense data: ', error);
+      toast.error('Failed to fetch expense data');
+      setExpensesData([]);
+    }
   };
-
-  const generateAndDownloadExpensesCSV = () => {
-    const headers = ["Branch", "Expense Name", "Amount"];
-    const csvContent = [
-      headers.join(","), // Header row
-      ...expenses.map((expense) => {
-        const branchName =
-          selectedBranch === "all"
-            ? expense.branch.name
-            : branches.find((branch) => branch._id === selectedBranch)?.name ||
-              "";
-
-        return [branchName, expense.expenseName, expense.amount].join(",");
-      }),
-    ].join("\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    saveAs(blob, "expenses.csv");
+  const filterExpensesByDate = (data) => {
+    const fromDateValue = fromDate ? new Date(fromDate) : null;
+    const toDateValue = toDate ? new Date(toDate) : null;
+  
+    const filteredExpensesData = data.filter((expense) => {
+      const expenseDate = new Date(expense.date);
+      expenseDate.setHours(0, 0, 0, 0);
+  
+      if (fromDateValue && toDateValue) {
+        return expenseDate >= fromDateValue && expenseDate <= toDateValue;
+      } else if (fromDateValue && !toDateValue) {
+        return expenseDate >= fromDateValue;
+      } else if (!fromDateValue && toDateValue) {
+        return expenseDate <= toDateValue;
+      } else {
+        return true;
+      }
+    });
+  
+    return filteredExpensesData;
   };
-
+  
+  const calculateTotalAmount = () => {
+    return expensesData.reduce((total, expense) => total + expense.price, 0);
+  };
   return (
     <div>
-      <h1>Expenses</h1>
+      <h5>Expenses</h5>
       <select
         value={selectedBranch}
         onChange={(e) => setSelectedBranch(e.target.value)}
@@ -148,9 +119,7 @@ const ExpenseTable = () => {
           onChange={(e) => setToDate(e.target.value)}
         />
       </label>
-      <Button className='m-1' variant="primary" onClick={generateAndDownloadExpensesCSV}>
-          Download
-        </Button>
+      
       <div>
        
         <Table striped bordered hover responsive>
@@ -162,26 +131,19 @@ const ExpenseTable = () => {
             </tr>
           </thead>
           <tbody>
-            {expenses.map((expense) => {
-              const branchName =
-                selectedBranch === "all"
-                  ? expense.branch.name
-                  : branches.find((branch) => branch._id === selectedBranch)
-                      ?.name || "";
-
-              return (
-                <tr key={expense._id}>
-                  <td>{branchName}</td>
-                  <td>{expense.expenseName}</td>
-                  <td>{expense.amount}</td>
-                </tr>
-              );
-            })}
+          {expensesData.map((expense, index) => (
+              <tr key={index}>
+                <td>{expense.branch}</td>
+                <td>{expense.item}</td>
+                <td>{expense.price}</td>
+                
+              </tr>
+            ))}
           </tbody>
           <tfoot>
             <tr>
               <td colSpan="2"><strong>Total Amount:</strong></td>
-              <td>{getTotalAmount()}</td>
+              <td colSpan="3">{calculateTotalAmount()}</td>
             </tr>
           </tfoot>
         </Table>

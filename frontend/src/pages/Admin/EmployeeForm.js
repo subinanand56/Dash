@@ -36,7 +36,7 @@ const EmployeeForm = () => {
   return (
     <EmployeeFormContainer>
       <div className="mt-5 justify-content-center">
-        <h1 className="text-center">Employee List</h1>
+        <h5 className="text-center">Employee List</h5>
         <div>
           
             <Card>

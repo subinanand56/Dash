@@ -17,7 +17,7 @@ const BranchForm = () => {
 
   useEffect(() => {
     fetchBranches();
-  }, []); // Fetch branches on component mount
+  }, []); 
 
   const fetchBranches = async () => {
     try {
@@ -25,7 +25,7 @@ const BranchForm = () => {
       setBranches(response.data); 
     } catch (error) {
       console.error("Error fetching branches: ", error);
-      // Handle fetch error here
+      
     }
   };
   const handleRowClick = (branch) => {

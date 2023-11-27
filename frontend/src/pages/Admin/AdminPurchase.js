@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Form, Button, Container, Row, Col } from "react-bootstrap";
 import toast from "react-hot-toast";
@@ -6,38 +5,31 @@ import axios from "axios";
 
 const AdminPurchase = () => {
   const [branches, setBranches] = useState([]);
+  const [currentDate, setCurrentDate] = useState(
+    new Date().toISOString().substr(0, 10)
+  );
   const [purchaseRequests, setPurchaseRequests] = useState([
     {
       productName: "",
       companyName: "",
       price: "",
-      
+      date: "",
     },
   ]);
   const [selectedBranch, setSelectedBranch] = useState("");
 
+  useEffect(() => {
+    fetchBranches();
+  }, []);
 
-  const getAllBranches = async () => {
+  const fetchBranches = async () => {
     try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_API}/api/v1/branch/get-branch`
-      );
-      if (response.data?.success) {
-        setBranches(response.data.branch);
-      } else {
-        toast.error(
-          response.data?.message || "Something went wrong in getting branches"
-        );
-      }
+      const response = await axios.get("http://localhost:8081/getbranch");
+      setBranches(response.data);
     } catch (error) {
-      console.error(error);
-      toast.error("Network Error: Unable to connect to the API server");
+      console.error("Error fetching branches: ", error);
     }
   };
-
-  useEffect(() => {
-    getAllBranches();
-  }, []);
 
   const handleAddPurchaseRequest = () => {
     setPurchaseRequests([
@@ -46,16 +38,16 @@ const AdminPurchase = () => {
         productName: "",
         companyName: "",
         price: "",
-        photo: null,
+        date: "",
       },
     ]);
   };
 
   const handlePurchaseRequestInputChange = (index, e) => {
-    const { name, value, files } = e.target;
+    const { name, value } = e.target;
     const updatedPurchaseRequests = [...purchaseRequests];
-    if (name === "photo") {
-      updatedPurchaseRequests[index][name] = files[0];
+    if (name === "date") {
+      updatedPurchaseRequests[index][name] = value;
     } else {
       updatedPurchaseRequests[index][name] = value;
     }
@@ -66,56 +58,59 @@ const AdminPurchase = () => {
     e.preventDefault();
 
     try {
-      const promises = purchaseRequests.map(async (request) => {
-        const productData = new FormData();
-        productData.append("productName", request.productName);
-        productData.append("companyName", request.companyName);
-        productData.append("price", request.price);
-        productData.append("branch", selectedBranch);
-        productData.append("accepted", true);
-        
-
-        const { data } = await axios.post(
-          `${process.env.REACT_APP_API}/api/v1/purchaserqst/add-purchaserqst`,
-          productData
-        );
-        return data;
+      const promises = purchaseRequests.map(async (purchase) => {
+        const response = await axios.post(`http://localhost:8081/purchase`, {
+          productName: purchase.productName,
+          companyName: purchase.companyName,
+          price: purchase.price,
+          date: purchase.date || currentDate,
+          branch: selectedBranch,
+          accepted: true,
+        });
+        return response.data;
       });
-
       const responses = await Promise.all(promises);
-
       const success = responses.every((res) => res.success);
-
       if (success) {
-        toast.success("Purchase requests added successfully");
         window.location.reload();
+        toast.success("Sales added successfully");
+        setPurchaseRequests([
+          {
+            productName: "",
+            companyName: "",
+            price: "",
+            date: "",
+          },
+        ]);
+        setSelectedBranch("");
       } else {
-        toast.error("Failed to add purchase requests");
+        toast.error("Failed to add sales");
       }
     } catch (error) {
       console.error(error);
       toast.error("Network Error: Unable to connect to the API server");
     }
   };
-  
+
   const handleBranchChange = (e) => {
     setSelectedBranch(e.target.value);
   };
 
   return (
     <Container>
-      <h2 className="text-center pt-3">Multiple Purchase Requests</h2>
+      <h5 className="text-center pt-3">Purchase</h5>
       <Form onSubmit={handleSubmit}>
         {purchaseRequests.map((request, index) => (
           <div key={index}>
             <Row>
               <Col md={6}>
-              <Form.Group controlId={`branch-${index}`}>
+                <Form.Group controlId={`branch-${index}`}>
                   <Form.Label>Branch:</Form.Label>
                   <Form.Control
                     as="select"
                     value={selectedBranch}
                     onChange={handleBranchChange}
+                    required
                   >
                     <option value="">Select a Branch</option>
                     {branches.map((branch) => (
@@ -133,9 +128,22 @@ const AdminPurchase = () => {
                     value={request.productName}
                     onChange={(e) => handlePurchaseRequestInputChange(index, e)}
                     name="productName"
+                    required
                   />
                 </Form.Group>
 
+                <Form.Group controlId={`date-${index}`}>
+                  <Form.Label>Date:</Form.Label>
+                  <Form.Control
+                    type="date"
+                    value={request.date || currentDate}
+                    onChange={(e) => handlePurchaseRequestInputChange(index, e)}
+                    name="date"
+                    required
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
                 <Form.Group controlId={`companyName-${index}`}>
                   <Form.Label>Company Name:</Form.Label>
                   <Form.Control
@@ -143,9 +151,9 @@ const AdminPurchase = () => {
                     value={request.companyName}
                     onChange={(e) => handlePurchaseRequestInputChange(index, e)}
                     name="companyName"
+                    required
                   />
                 </Form.Group>
-
                 <Form.Group controlId={`price-${index}`}>
                   <Form.Label>Price:</Form.Label>
                   <Form.Control
@@ -153,17 +161,9 @@ const AdminPurchase = () => {
                     value={request.price}
                     onChange={(e) => handlePurchaseRequestInputChange(index, e)}
                     name="price"
+                    required
                   />
                 </Form.Group>
-
-                {/* <Form.Group controlId={`photo-${index}`}>
-                  <Form.Label>Photo:</Form.Label>
-                  <Form.Control
-                    type="file"
-                    onChange={(e) => handlePurchaseRequestInputChange(index, e)}
-                    name="photo"
-                  />
-                </Form.Group> */}
               </Col>
             </Row>
           </div>
@@ -178,7 +178,7 @@ const AdminPurchase = () => {
             Add More
           </Button>
           <Button variant="primary" type="submit">
-            Submit 
+            Submit
           </Button>
         </div>
       </Form>

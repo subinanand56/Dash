@@ -207,7 +207,13 @@ app.get("/product", (req, res) => {
 app.put("/product/:id", (req, res) => {
   const productId = req.params.id;
   const newName = req.body.name;
-  const sql = "UPDATEproduct SET name = ? WHERE id = ?";
+  if (!newName) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Name field is required for update" });
+  }
+
+  const sql = "UPDATE product SET name = ? WHERE id = ?";
   const productData = [newName, productId];
 
   db.query(sql, productData, (err, result) => {
@@ -225,5 +231,144 @@ app.delete("/product/:id", (req, res) => {
   db.query(sql, productData, (err, result) => {
     if (err) return res.json(err);
     return res.json({ message: "Product deleted successfully", result });
+  });
+});
+
+
+app.post("/test", (req, res) => {
+  const sql =
+    "INSERT INTO test (`name`,`date`)VALUES (?)";
+  const data = [
+    req.body.name,
+    req.body.date,  
+  ];
+  db.query(sql, [data], (err, result) => {
+    if (err) return res.json(err);
+    return res.json(result);
+  });
+});
+
+app.post("/sales", (req, res) => {
+  const sql =
+    "INSERT INTO sales (`name`,`price`,`branch`,`quantity`,`date`,`unit`)VALUES (?)";
+  const data = [
+    req.body.name,
+    req.body.price,
+    req.body.branch,
+    req.body.quantity,
+    req.body.date,
+    req.body.unit,
+    
+  ];
+  db.query(sql, [data], (err, result) => {
+    if (err) return res.json(err);
+    return res.json(result);
+  });
+});
+
+
+app.get("/getsales", (req, res) => {
+  const branch = req.query.branch;
+  const startDate = req.query.start_date;
+  const endDate = req.query.end_date;
+
+  let sql = "SELECT * FROM sales WHERE 1 = 1"; 
+
+  const params = [];
+  if (branch) {
+    sql += " AND `branch` = ?";
+    params.push(branch);
+  }
+
+  if (startDate && endDate) {
+    sql += " AND `date` BETWEEN ? AND ?";
+    params.push(startDate, endDate);
+  }
+
+  db.query(sql, params, (err, results) => {
+    if (err) return res.json(err);
+    return res.json(results);
+  });
+});
+
+
+app.post("/expense", (req, res) => {
+  const sql =
+    "INSERT INTO expense (`item`,`price`,`branch`,`date`)VALUES (?)";
+  const data = [
+    req.body.item,
+    req.body.price,
+    req.body.branch,
+    req.body.date, 
+  ];
+  db.query(sql, [data], (err, result) => {
+    if (err) return res.json(err);
+    return res.json(result);
+  });
+});
+
+
+app.get("/getexpenses", (req, res) => {
+  const branch = req.query.branch;
+  const startDate = req.query.start_date;
+  const endDate = req.query.end_date;
+
+  let sql = "SELECT * FROM expense WHERE 1 = 1"; 
+
+  const params = [];
+  if (branch) {
+    sql += " AND `branch` = ?";
+    params.push(branch);
+  }
+
+  if (startDate && endDate) {
+    sql += " AND `date` BETWEEN ? AND ?";
+    params.push(startDate, endDate);
+  }
+
+  db.query(sql, params, (err, results) => {
+    if (err) return res.json(err);
+    return res.json(results);
+  });
+});
+
+app.post("/purchase", (req, res) => {
+  const sql =
+    "INSERT INTO purchase (`productName`,`price`,`branch`,`companyName`,`accepted`,`date`)VALUES (?)";
+  const data = [
+    req.body.productName,
+    req.body.price,
+    req.body.branch,
+    req.body.companyName, 
+    req.body.accepted,
+    req.body.date,
+  ];
+  db.query(sql, [data], (err, result) => {
+    if (err) return res.json(err);
+    return res.json(result);
+  });
+});
+
+
+app.get("/getpurchases", (req, res) => {
+  const branch = req.query.branch;
+  const startDate = req.query.start_date;
+  const endDate = req.query.end_date;
+
+  let sql = "SELECT * FROM purchase WHERE `accepted` = 1"; 
+  const params = [];
+  if (branch) {
+    sql += " AND `branch` = ?";
+    params.push(branch);
+  }
+
+  if (startDate && endDate) {
+    sql += " AND `date` BETWEEN ? AND ?";
+    params.push(startDate, endDate);
+  }
+
+  db.query(sql, params, (err, results) => {
+    if (err) return res.json(err);
+    return res.json(results);
   });
 });
