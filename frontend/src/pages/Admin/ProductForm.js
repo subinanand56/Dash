@@ -20,11 +20,12 @@ const ProductForm = () => {
       const { data } = await axios.post("http://localhost:8081/product", {
         name,
       });
+      window.location.reload();
       if (data?.success) {
         toast.success(`${name} is created`);
         setName("");
         fetchProducts();
-        
+        window.location.reload();
       } else {
         toast.error(data.message);
       }
@@ -70,6 +71,7 @@ const ProductForm = () => {
       const response = await axios.delete(
         `http://localhost:8081/product/${productId}`
       );
+      
       if (response.data?.message === "Product deleted successfully") {
         toast.success("Product deleted successfully");
         fetchProducts();
@@ -104,16 +106,7 @@ const ProductForm = () => {
                       <td onClick={() => handleRowClick(product)}>
                         {selectedProduct === product && (
                           <>
-                            {/* <Button
-                              variant="primary ms-2"
-                              onClick={() => {
-                                setVisible(true);
-                                setUpdatedName(product?.name); // Use product directly here
-                                setSelectedProduct(product); // Set the selectedProduct here
-                              }}
-                            >
-                              Edit
-                            </Button> */}
+                            
                             <Button
                               variant="danger ms-2"
                               onClick={() => {

@@ -58,8 +58,9 @@ const Adminexpense = () => {
       });
       const responses = await Promise.all(promises);
       const success = responses.every((res) => res.success);
+      window.location.reload();
       if (success) {
-        window.location.reload();
+       
         toast.success("expense added successfully");
         setExpenses([
           ...expenses,
@@ -70,6 +71,7 @@ const Adminexpense = () => {
           },
         ]);
         setSelectedBranch("");
+        window.location.reload();
       } else {
         toast.error("Failed to add expense");
       }

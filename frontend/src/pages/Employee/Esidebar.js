@@ -8,7 +8,7 @@ import { motion } from "framer-motion";
 
 const Esidebar = () => {
   const [selected, setSelected] = useState(0);
-  const [expanded, setExpanded] = useState(window.innerWidth > 768);
+  const [expanded, setExpanded] = useState(window.innerWidth > 820);
 
   const toggleSidebar = () => {
     if (window.innerWidth <= 768) {
@@ -27,7 +27,7 @@ const Esidebar = () => {
 
   useEffect(() => {
     const handleResize = () => {
-      setExpanded(window.innerWidth > 768);
+      setExpanded(window.innerWidth > 820);
     };
 
     window.addEventListener("resize", handleResize);
@@ -127,7 +127,7 @@ const AdminSidebarContainer = styled.div`
       display: none;
     }
   }
-  @media (max-width: 768px) {
+  @media (max-width: 820px) {
     .Sidebar {
       position: fixed;
       z-index: 9;
@@ -148,11 +148,7 @@ const AdminSidebarContainer = styled.div`
     border-radius: 10px;
     z-index: 9;
   }
-  @media (min-width: 769px) {
-    .bars {
-      display: none;
-    }
-  }
+ 
   }
 `;
 export default Esidebar;

@@ -1,4 +1,4 @@
-import React, { useState , useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import Logo from "../../../assets/download (1).png";
 import { AdminSidebarData } from "../../../Data/AdminData";
@@ -11,18 +11,18 @@ const AdminSidebar = () => {
   const [expanded, setExpanded] = useState(window.innerWidth > 820);
 
   const toggleSidebar = () => {
-    if (window.innerWidth <=820) {
+    if (window.innerWidth <= 820) {
       setExpanded(!expanded);
     }
   };
 
   const sidebarVariants = {
     true: {
-      left: '0'
+      left: "0",
     },
     false: {
-      left: '-60%'
-    }
+      left: "-60%",
+    },
   };
 
   useEffect(() => {
@@ -46,33 +46,43 @@ const AdminSidebar = () => {
       >
         <UilBars />
       </div>
-      <motion.div className="Sidebar" variants={sidebarVariants} animate={expanded ? "true" : "false"}>
-        <div className="menu">
-          {AdminSidebarData.map((item, index) => (
-            <Link
-              to={`/${item.key}`}
-              key={item.key}
-              style={{ textDecoration: "none", color: "black" }}
-            >
-              <div
-                className={selected === index ? "menuitem active" : "menuitem"}
-                onClick={() => setSelected(index)}
+      <motion.div
+        className="Sidebar"
+        variants={sidebarVariants}
+        animate={expanded ? "true" : "false"}
+        style={{ overflowY: "auto" }}
+      >
+        <div className="scrollable-content">
+          <div className="menu">
+            {AdminSidebarData.map((item, index) => (
+              <Link
+                to={`/${item.key}`}
+                key={item.key}
+                style={{ textDecoration: "none", color: "black" }}
               >
-                {/* Adjust the item rendering based on your data */}
-                <item.icon style={{ color: "black" }} />
-                <span className="menu-text" style={{ color: "black" }}>
-                  {item.heading}
-                </span>
-                {selected === index && <div className="active-indicator"></div>}
-              </div>
-            </Link>
-          ))}
+                <div
+                  className={
+                    selected === index ? "menuitem active" : "menuitem"
+                  }
+                  onClick={() => setSelected(index)}
+                >
+                  {/* Adjust the item rendering based on your data */}
+                  <item.icon style={{ color: "black" }} />
+                  <span className="menu-text" style={{ color: "black" }}>
+                    {item.heading}
+                  </span>
+                  {selected === index && (
+                    <div className="active-indicator"></div>
+                  )}
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
       </motion.div>
     </AdminSidebarContainer>
   );
 };
-
 
 const AdminSidebarContainer = styled.div`
   .Sidebar {
@@ -140,20 +150,17 @@ const AdminSidebarContainer = styled.div`
     .menuitem .menu-text {
       display: block;
     }
-    .bars{
-    display: flex;
-    position: fixed;
-    top: 2rem;
-    background: white;
-    padding:10px;
-    border-radius: 10px;
-    z-index: 9;
-  }
-  /* @media (min-width: 769px) {
+    
     .bars {
-      display: none;
+      display: flex;
+      position: fixed;
+      top: 2rem;
+      background: white;
+      padding: 10px;
+      border-radius: 10px;
+      z-index: 9;
     }
-  } */
+ 
   }
 `;
 export default AdminSidebar;

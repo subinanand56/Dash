@@ -74,8 +74,9 @@ const SalesForm = () => {
       });
       const responses = await Promise.all(promises);
       const success = responses.every((res) => res.success);
+      window.location.reload();
       if (success) {
-        window.location.reload();
+        
         toast.success("Sales added successfully");
         setSales([
           {
@@ -87,6 +88,7 @@ const SalesForm = () => {
           },
         ]);
         setSelectedBranch("");
+        window.location.reload();
       } else {
         toast.error("Failed to add sales");
       }

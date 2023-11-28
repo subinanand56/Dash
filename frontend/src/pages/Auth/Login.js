@@ -33,7 +33,7 @@ const Login = () => {
         localStorage.setItem('role', response.data.role);
         localStorage.setItem('branch', response.data.branch);
         localStorage.setItem('eid',response.data.eid);;
-        console.log(response.data.eid);
+        
         if (userRole === 'admin') {
           navigate('/admin-dashboard');
         } else if (userRole === 'employee') {

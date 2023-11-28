@@ -85,7 +85,7 @@ const RPurchase = () => {
       const responses = await Promise.all(promises);
 
       const success = responses.every((res) => res.success);
-
+      window.location.reload();
       if (success) {
         toast.success("Purchase requests added successfully");
         window.location.reload();

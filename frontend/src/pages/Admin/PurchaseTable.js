@@ -128,7 +128,7 @@ const PurchaseTable = () => {
     <TableContainer>
       <div className="Table">
       <div>
-        <h5>Sales</h5>
+        <h5>Purchase</h5>
         <div  className="mb-1">
         <select value={selectedBranch} onChange={(e) => setSelectedBranch(e.target.value)}>
           <option value="all">All</option>

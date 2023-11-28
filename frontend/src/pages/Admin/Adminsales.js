@@ -88,8 +88,8 @@ const Adminsales = () => {
       });
       const responses = await Promise.all(promises);
       const success = responses.every((res) => res.success);
-      if (success) {
-        window.location.reload();
+      window.location.reload();
+      if (success) {      
         toast.success("Sales added successfully");
         setSales([
           {
@@ -101,6 +101,7 @@ const Adminsales = () => {
           },
         ]);
         setSelectedBranch("");
+        window.location.reload();
       } else {
         toast.error("Failed to add sales");
       }

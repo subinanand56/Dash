@@ -42,10 +42,12 @@ const BranchForm = () => {
       const { data }  = await axios.post("http://localhost:8081/branch", {
         name,
       });
+      window.location.reload();
       if (data?.success) {
         toast.success(`${name} is created`);
         setName(""); 
         fetchBranches();
+        window.location.reload();
       } else {
         toast.error(data.message);
       }
