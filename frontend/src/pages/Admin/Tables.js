@@ -98,8 +98,10 @@ const Tables = () => {
 
   return (
     <TableContainer>
+      <div className='Table'> 
       <div>
         <h5>Sales</h5>
+        <div>
         <select value={selectedBranch} onChange={(e) => setSelectedBranch(e.target.value)}>
           <option value="all">All</option>
           {branches.map((branch) => (
@@ -108,15 +110,19 @@ const Tables = () => {
             </option>
           ))}
         </select>
+        </div>
+        <div>
         <label>
           From:
           <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
         </label>
+        </div>
+        <div>
         <label>
-          To:
+            To:
           <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} />
         </label>
-        
+        </div>
       </div>
       <div>
         <Table striped bordered responsive>
@@ -146,12 +152,18 @@ const Tables = () => {
           </tbody>
         </Table>
       </div>
+      </div>
     </TableContainer>
   );
 };
 
 const TableContainer = styled.div`
-  
+
+@media screen and (max-width: 768px) {
+  .Table{
+  margin-top: 6rem;
+}
+  }
 `;
 
 export default Tables;

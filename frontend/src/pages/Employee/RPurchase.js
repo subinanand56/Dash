@@ -5,12 +5,15 @@ import axios from "axios";
 
 const RPurchase = () => {
   const [branches, setBranches] = useState([]);
+  const [currentDate, setCurrentDate] = useState(
+    new Date().toISOString().substr(0, 10)
+  );
   const [purchaseRequests, setPurchaseRequests] = useState([
     {
       productName: "",
       companyName: "",
       price: "",
-      photo: null,
+      image: null,
       date: "",
     },
   ]);
@@ -36,7 +39,7 @@ const RPurchase = () => {
         productName: "",
         companyName: "",
         price: "",
-        photo: null,
+        image: null,
         date: "",
       },
     ]);
@@ -45,7 +48,7 @@ const RPurchase = () => {
   const handlePurchaseRequestInputChange = (index, e) => {
     const { name, value, files } = e.target;
     const updatedPurchaseRequests = [...purchaseRequests];
-    if (name === "photo") {
+    if (name === "image") {
       updatedPurchaseRequests[index][name] = files[0];
     } else {
       updatedPurchaseRequests[index][name] = value;
@@ -56,13 +59,47 @@ const RPurchase = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    
+    try {
+      
+      const promises = purchaseRequests.map(async (request) => {
+        
+        const productData = new FormData();
+        productData.append("productName", request.productName);
+        productData.append("companyName", request.companyName);
+        productData.append("price", request.price);
+        productData.append("branch", selectedBranch);
+        productData.append("image", request.image);
+        productData.append("date", request.date || currentDate);
+        productData.append("accepted", false);
+       
+        const { data } = await axios.post(
+          `http://localhost:8081/purchaseimage`,
+          productData
+        );
+        
+        return data;
+      });
+
+      const responses = await Promise.all(promises);
+
+      const success = responses.every((res) => res.success);
+
+      if (success) {
+        toast.success("Purchase requests added successfully");
+        window.location.reload();
+      } else {
+        toast.error("Failed to add purchase requests");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Network Error: Unable to connect to the API server");
+    }
   };
 
 
   return (
     <Container>
-      <h2 className="text-center pt-3">Multiple Purchase Requests</h2>
+      <h5 className="text-center pt-3">Multiple Purchase Requests</h5>
       <Form onSubmit={handleSubmit}>
         {purchaseRequests.map((request, index) => (
           <div key={index}>
@@ -106,13 +143,24 @@ const RPurchase = () => {
                     name="price"
                   />
                 </Form.Group>
+                
+                <Form.Group controlId={`date-${index}`}>
+                  <Form.Label>Date:</Form.Label>
+                  <Form.Control
+                    type="date"
+                    value={request.date || currentDate}
+                    onChange={(e) => handlePurchaseRequestInputChange(index, e)}
+                    name="date"
+                    required
+                  />
+                </Form.Group>
 
-                <Form.Group controlId={`photo-${index}`}>
+                <Form.Group controlId={`image-${index}`}>
                   <Form.Label>Photo:</Form.Label>
                   <Form.Control
                     type="file"
                     onChange={(e) => handlePurchaseRequestInputChange(index, e)}
-                    name="photo"
+                    name="image"
                   />
                 </Form.Group>
               </Col>

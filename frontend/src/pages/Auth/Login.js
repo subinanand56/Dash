@@ -39,7 +39,10 @@ const Login = () => {
           navigate('/admin-dashboard');
         } else if (userRole === 'employee') {
           navigate('/employee-dashboard');
-        } else {
+        } else if (userRole === 'manager') {
+          navigate('/manager-dashboard');
+        } 
+        else {
           navigate('/register');
           toast.error("Role not recognized");
         }

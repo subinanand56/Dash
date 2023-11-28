@@ -81,7 +81,7 @@ const ExpenseForm = () => {
 
   return (
     <Container>
-      <h2 className="text-center pt-3">Daily Expense Entry</h2>
+      <h5 className="text-center pt-3">Daily Expense Entry</h5>
       <Form onSubmit={handleSubmit}>
         {expenses.map((expense, index) => (
           <div key={index}>

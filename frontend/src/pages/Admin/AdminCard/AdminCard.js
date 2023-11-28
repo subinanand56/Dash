@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { motion } from "framer-motion";
 import axios from "axios";
-import { CircularProgressbar } from "react-circular-progressbar";
+
 import "react-circular-progressbar/dist/styles.css";
 import { Row, Col, Form } from "react-bootstrap";
 
@@ -15,6 +15,71 @@ const CompactCard = () => {
   const [purchaseAmount, setPurchaseAmount] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
+  
+  useEffect(() => {
+    fetchBranches();
+    
+  }, []);
+  const fetchBranches = async () => {
+    try {
+      const response = await axios.get("http://localhost:8081/getbranch");
+      setBranches(response.data);
+    } catch (error) {
+      console.error("Error fetching branches: ", error);
+    }
+  };
+  const handleDateChange = (e, dateType) => {
+    if (dateType === 'from') {
+      setFromDate(e.target.value);
+    } else if (dateType === 'to') {
+      setToDate(e.target.value);
+    }
+  };
+  useEffect(() => {
+    
+    const currentDate = new Date();
+    const oneMonthAgo = new Date();
+    oneMonthAgo.setMonth(currentDate.getMonth() - 1);
+
+    setFromDate(oneMonthAgo.toISOString().split('T')[0]);
+    setToDate(currentDate.toISOString().split('T')[0]);
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const response = await axios.get(`http://localhost:8081/sales/total`, {
+        params: {
+          fromDate,
+          toDate,
+          branch: selectedBranch === "all" ? null : selectedBranch,
+        },
+      });
+      setSalesAmount(response.data.totalSales);
+    } catch (error) {
+      console.error("Error fetching sales data: ", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+    fetchExpensesData();
+  }, [fromDate, toDate, selectedBranch]);
+
+
+  const fetchExpensesData = async () => {
+    try {
+      const response = await axios.get(`http://localhost:8081/expenses/total`, {
+        params: {
+          fromDate,
+          toDate,
+          branch: selectedBranch === "all" ? null : selectedBranch,
+        },
+      });
+      setExpensesAmount(response.data.totalExpenses);
+    } catch (error) {
+      console.error("Error fetching expenses data: ", error);
+    }
+  };
 
   return (
     <AdminCardContainer>
@@ -27,19 +92,14 @@ const CompactCard = () => {
       >
         <div className="radialBar">
           <span>Sales</span>
-
-          <span>Expenses</span>
-
-          <span>Purchase</span>
+          <span>Expenses  </span>
+          <span>Purchase  </span>
         </div>
         <div className="radialBar">
-          <span>Rs {salesAmount}</span>
-
-          <span>Rs {expensesAmount}</span>
-
-          <span>Rs {purchaseAmount}</span>
+          <span>Rs{salesAmount}</span>
+          <span>Rs{expensesAmount}</span>
+          <span>Rs{purchaseAmount}</span>
         </div>
-
         <div className="Row">
         <Row>
           <Col>
@@ -84,12 +144,13 @@ const AdminCardContainer = styled.div`
   .CompactCard {
     display: flex;
     flex: 1;
-    height: 12rem !important;
+    height: 13rem !important;
     border-radius: 0.7rem;
     color: white;
     padding: 1rem;
     position: relative;
     cursor: pointer;
+    
   }
   .CompactCard:hover {
     box-shadow: none !important;
@@ -118,21 +179,22 @@ const AdminCardContainer = styled.div`
   @media screen and (max-width: 768px) {
     .CompactCard {
       width: 100%;
-      margin-bottom: 1rem;
+      margin-bottom: 5rem;
     }
 
     .CompactCard .Row > div {
-      width: 55%;
+      width: 70%;
       margin-right: 0%;
     }
     .CompactCard .Row {
-      width: 100%;
-      margin-top: 1rem;  
+      width: 100%;      
+      margin-left : 10rem;
     }
 
     .rowContainer {
       margin-bottom: 1rem; 
     }
   }
+ 
 `;
 export default CompactCard;

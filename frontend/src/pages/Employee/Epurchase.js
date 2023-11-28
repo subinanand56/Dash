@@ -88,7 +88,7 @@ const Epurchase = () => {
 
   return (
     <div className="container mt-4">
-      <h2 className="text-center mb-4">Purchase Requests Status</h2>
+      <h5 className="text-center mb-4">Purchase Requests Status</h5>
       <Table striped bordered  responsive>
         <thead>
           <tr>

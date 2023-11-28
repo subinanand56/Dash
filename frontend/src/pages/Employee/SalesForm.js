@@ -98,7 +98,7 @@ const SalesForm = () => {
 
   return (
     <Container>
-      <h2 className="text-center pt-3">Daily Sales Entry</h2>
+      <h5 className="text-center pt-3">Daily Sales Entry</h5>
       <Form onSubmit={handleSubmit}>
         {sales.map((sale, index) => (
           <div key={index}>

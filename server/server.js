@@ -8,6 +8,7 @@ import path from "path";
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(express.static('public'));
 
 app.listen(8081, () => {
   console.log("Server Running");
@@ -58,47 +59,6 @@ app.post("/register", (req, res) => {
   });
 });
 
-// app.post("/login", (req, res) => {
-//   const email = req.body.email;
-//   const password = req.body.password;
-
-//   const sql = "SELECT * FROM register WHERE email = ? AND password = ?";
-//   db.query(sql, [email, password], (err, result) => {
-//     if (err) return res.json(err);
-
-//     if (result.length > 0) {
-//       const roleQuery = "SELECT role FROM register WHERE email = ?";
-//       const branchQuery = "SELECT branch FROM register WHERE email = ?";
-//       db.query(roleQuery,branchQuery, [email], (roleErr ,branchErr,branchResult, roleResult) => {
-//         if (roleErr) return res.json(roleErr);
-
-//         if (roleResult.length > 0) {
-//           const name = result[0].name;
-//           const role = roleResult[0].role; 
-
-//           const token = jwt.sign(
-//             { name, role },
-//             "qwertyuiopasdfghjklzxcvbnmqwertyui"
-//           );
-
-//           return res.json({
-//             success: true,
-//             message: "Login successful",
-//             role,
-//             token,
-//           });
-//         } else {
-//           return res.json({
-//             success: false,
-//             message: "Role not found for the user",
-//           });
-//         }
-//       });
-//     } else {
-//       return res.json({ success: false, message: "Invalid email or password" });
-//     }
-//   });
-// });
 app.post("/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
@@ -406,7 +366,24 @@ app.get("/getexpenses", (req, res) => {
   });
 });
 
-app.post("/purchase",upload.single('image'),(req, res) => {
+app.post("/purchase",(req, res) => {
+  const sql =
+    "INSERT INTO purchase (`productName`,`price`,`branch`,`companyName`,`accepted`,`date`)VALUES (?)";
+  const data = [
+    req.body.productName,
+    req.body.price,
+    req.body.branch,
+    req.body.companyName, 
+    req.body.accepted,
+    req.body.date,    
+  ];
+  db.query(sql, [data], (err, result) => {
+    if (err) return res.json(err);
+    return res.json(result);
+  });
+});
+
+app.post("/purchaseimage",upload.single('image'),(req, res) => {
   const sql =
     "INSERT INTO purchase (`productName`,`price`,`branch`,`companyName`,`accepted`,`date`,`image`)VALUES (?)";
   const data = [
@@ -423,6 +400,28 @@ app.post("/purchase",upload.single('image'),(req, res) => {
     return res.json(result);
   });
 });
+
+app.get("/getallrqst", (req, res) => {
+  const { branch } = req.query;
+  const sql = "SELECT * FROM purchase WHERE branch = ?"; 
+  db.query(sql, [branch], (err, result) => {
+    if (err) return res.json(err);
+    return res.json(result);
+  });
+});
+
+
+app.put("/updatestatus/:id", (req, res) => {
+  const { id } = req.params;
+  const { accepted } = req.body; 
+
+  const sql = "UPDATE purchase SET accepted = ? WHERE id = ?";
+  db.query(sql, [accepted, id], (err, result) => {
+    if (err) return res.json(err);
+    return res.json({ message: `Status updated for purchase ID ${id}`, accepted });
+  });
+});
+
 
 
 app.get("/getpurchases", (req, res) => {
@@ -447,3 +446,67 @@ app.get("/getpurchases", (req, res) => {
     return res.json(results);
   });
 });
+
+// Endpoint to get the total sum of prices for sales within a date range
+app.get("/sales/total", (req, res) => {
+  const { fromDate, toDate, branch } = req.query;
+
+  let sql = "SELECT SUM(price) AS totalSales FROM sales WHERE date BETWEEN ? AND ?";
+  const data = [fromDate, toDate];
+
+  if (branch) {
+    sql += " AND branch = ?";
+    data.push(branch);
+  }
+
+  db.query(sql, data, (err, result) => {
+    if (err) return res.status(500).json({ error: err.message });
+    
+    const totalSales = result[0].totalSales || 0; // Extract total sales or default to 0
+    
+    return res.json({ totalSales });
+  });
+});
+
+// Endpoint to get the total sum of expenses within a date range
+app.get("/expenses/total", (req, res) => {
+  const { fromDate, toDate, branch } = req.query;
+
+  let sql = "SELECT SUM(price) AS totalExpenses FROM expense WHERE date BETWEEN ? AND ?";
+  const data = [fromDate, toDate];
+
+  if (branch) {
+    sql += " AND branch = ?";
+    data.push(branch);
+  }
+
+  db.query(sql, data, (err, result) => {
+    if (err) return res.status(500).json({ error: err.message });
+
+    const totalExpenses = result[0].totalExpenses || 0; // Extract total expenses or default to 0
+
+    return res.json({ totalExpenses });
+  });
+});
+
+app.get("/purchase/total", (req, res) => {
+  const { fromDate, toDate, branch } = req.query;
+
+  let sql = "SELECT SUM(price) AS totalPurchases FROM purchase WHERE date BETWEEN ? AND ? AND accepted = ?";
+  const data = [fromDate, toDate, 1];
+
+  if (branch) {
+    sql += " AND branch = ?";
+    data.push(branch);
+  }
+
+  db.query(sql, data, (err, result) => {
+    if (err) return res.status(500).json({ error: err.message });
+
+    const totalPurchases = result[0].totalPurchases || 0;
+
+    return res.json({ totalPurchases });
+  });
+});
+
+

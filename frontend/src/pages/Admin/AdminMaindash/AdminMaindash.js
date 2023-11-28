@@ -22,7 +22,7 @@ const AdminMaindash = () => {
 };
 const AdminMaindashContainer = styled.div`
   .MainDash {
-    padding-top: 1rem;
+    padding-top: 1rem;   
     display: flex;
     flex-direction: column;
     justify-content: space-evenly;
@@ -40,25 +40,84 @@ const AdminMaindashContainer = styled.div`
       align-items: center;
     }
   }
-  @media screen and (max-width: 463px) {
+  @media screen and (max-width: 511px) {
     .MainDash {
       align-items: center;
-      margin-left: 40px;
+      margin-left: 22px;
     }
   }
-  @media screen and (max-width: 421px) {
+  @media screen and (max-width: 503px) {
     .MainDash {
       align-items: center;
-      margin-left: 80px;
+      margin-left: 26px;
     }
   }
-  @media screen and (max-width: 381px) {
+  @media screen and (max-width: 488px) {
     .MainDash {
-      /* align-items: center; */
-      margin-left: 92px;
+      align-items: center;
+      margin-left: 28px;
     }
   }
-
+  @media screen and (max-width: 485px) {
+    .MainDash {
+      align-items: center;
+      margin-left: 30px;
+    }
+  }
+  @media screen and (max-width: 478px) {
+    .MainDash {
+      align-items: center;
+      margin-left: 36px
+    }
+  }
+  @media screen and (max-width: 476px) {
+    .MainDash {
+      align-items: center;
+      margin-left: 39px
+    }
+  }
+  @media screen and (max-width: 472px) {
+    .MainDash {
+      align-items: center;
+      margin-left: 42px
+    }
+  }
+  @media screen and (max-width: 464px) {
+    .MainDash {
+      align-items: center;
+      margin-left: 46px
+    }
+  }
+  @media screen and (max-width: 462px) {
+    .MainDash {
+      align-items: center;
+      margin-left: 48px
+    }
+  }
+  @media screen and (max-width: 375px) {
+    .MainDash {
+      align-items: center;
+      margin-left: 150px
+    }
+  }
+  @media screen and (max-width: 414px) {
+    .MainDash {
+      align-items: center;
+      margin-left: 120px
+    }
+  }
+  @media screen and (max-width: 430px) {
+    .MainDash {
+      align-items: center;
+      margin-left: 100px
+    }
+  }
+  @media screen and (max-width: 360px) {
+    .MainDash {
+      align-items: center;
+      margin-left: 160px
+    }
+  }
 `;
 
 const ScrollableContent = styled.div`
