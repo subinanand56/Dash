@@ -81,7 +81,7 @@ const Adminexpense = () => {
 
   return (
     <Container>
-      <h5 className="text-center pt-3">Daily Expense Entry</h5>
+      <h5 className="text-center pt-5">Daily Expense Entry</h5>
       <Form onSubmit={handleSubmit}>
         {expenses.map((expense, index) => (
           <div key={index}>

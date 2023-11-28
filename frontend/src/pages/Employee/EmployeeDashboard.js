@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Esidebar from "./Esidebar";
 import styled from 'styled-components'
 import Epurchase from "./Epurchase";
+import SalesForm from "./SalesForm";
 
 const EmployeeDashboard = () => {
   const navigate = useNavigate();
@@ -24,7 +25,8 @@ const EmployeeDashboard = () => {
         <div className="App-Glass">
         <Esidebar/>
         <ScrollableContent>
-        <Epurchase/>
+        
+        <SalesForm/>
         </ScrollableContent> 
         </div>
       </div>

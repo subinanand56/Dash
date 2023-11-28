@@ -11,7 +11,7 @@ export const EsidebarData = [
     {
       key: "employee-dashboard",
       icon: UilEstate,
-      heading: "Dashboard",
+      heading: "Add sales",
     },
     {
       key: "request",
@@ -21,7 +21,7 @@ export const EsidebarData = [
     {
       key: "esalesdash",
       icon: UilUsdSquare,
-      heading: "Add Sales",
+      heading: "Request status",
     },
     {
       key: "eexpensedash",

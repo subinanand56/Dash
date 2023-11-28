@@ -3,6 +3,7 @@ import axios from "axios";
 import { Table, Button } from "react-bootstrap";
 import { toast } from "react-toastify";
 import { saveAs } from "file-saver";
+import styled from "styled-components";
 
 const ExpenseTable = () => {
   const [branches, setBranches] = useState([]);
@@ -89,45 +90,76 @@ const ExpenseTable = () => {
   const calculateTotalAmount = () => {
     return expensesData.reduce((total, expense) => total + expense.price, 0);
   };
+
+  const downloadInvoice = () => {
+    const headers = [
+      'Branch',
+      'Expense Name',
+      'Amount'
+    ];
+
+    const csvRows = [
+      headers.join(','),
+      ...expensesData.map((expense) => {
+        return [
+          expense.branch,
+          expense.item,
+          expense.price
+        ].join(',');
+      }),
+      ['', '', 'Total Amount:', calculateTotalAmount()],
+    ];
+
+    const csvContent = csvRows.join('\n');
+
+    const fileName = `Invoice_${fromDate}_to_${toDate}_${selectedBranch === 'all' ? 'All_Branches' : selectedBranch}.csv`;
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+
+    saveAs(blob, fileName);
+  };
+
+  
   return (
+    <TableContainer>
+    <div className='Table'> 
     <div>
-      <h5>Expenses</h5>
-      <select
-        value={selectedBranch}
-        onChange={(e) => setSelectedBranch(e.target.value)}
-      >
-        <option value="all">All</option>
-        {branches.map((branch) => (
-          <option key={branch._id} value={branch._id}>
-            {branch.name}
-          </option>
-        ))}
-      </select>
-      <label>
-        From:
-        <input
-          type="date"
-          value={fromDate}
-          onChange={(e) => setFromDate(e.target.value)}
-        />
-      </label>
-      <label>
-        To:
-        <input
-          type="date"
-          value={toDate}
-          onChange={(e) => setToDate(e.target.value)}
-        />
-      </label>
-      
+        <h5>Expenses</h5>
+        <div className="mb-1">
+        <select value={selectedBranch} onChange={(e) => setSelectedBranch(e.target.value)}>
+          <option value="all">All</option>
+          {branches.map((branch) => (
+            <option key={branch._id} value={branch._id}>
+              {branch.name}
+            </option>
+          ))}
+        </select>
+        </div>
+        <div className="mb-1">
+        <label>
+          From:
+          <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
+        </label>
+        </div>
+        <div className="mb-1">
+        <label>
+            To:
+          <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} />
+        </label>
+        </div>
+      </div>
+      <div className="mb-1">
+            <Button variant="primary" onClick={downloadInvoice}>
+              Download
+            </Button>
+          </div>
       <div>
        
         <Table striped bordered hover responsive>
           <thead>
             <tr>
-              <th>Branch</th>
-              <th>Expense Name</th>
-              <th>Amount</th>
+              <th>Brnh</th>
+              <th>Exp Nme</th>
+              <th>Amnt</th>
             </tr>
           </thead>
           <tbody>
@@ -149,7 +181,15 @@ const ExpenseTable = () => {
         </Table>
       </div>
     </div>
+    </TableContainer>
   );
 };
+const TableContainer = styled.div`
 
+@media screen and (max-width: 768px) {
+  .Table{
+  margin-top: 6rem;
+}
+  }
+`;
 export default ExpenseTable;

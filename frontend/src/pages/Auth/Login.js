@@ -27,14 +27,13 @@ const Login = () => {
   
       if (response.data.success) {
         toast.success("Login successful");
-  
-        const userRole = response.data.role;
-        console.log(userRole);
-  
+ 
+        const userRole = response.data.role;     
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('role', response.data.role);
         localStorage.setItem('branch', response.data.branch);
-  
+        localStorage.setItem('eid',response.data.eid);;
+        console.log(response.data.eid);
         if (userRole === 'admin') {
           navigate('/admin-dashboard');
         } else if (userRole === 'employee') {

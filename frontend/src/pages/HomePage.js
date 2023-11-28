@@ -6,40 +6,6 @@ import { useNavigate } from "react-router-dom";
 import image from "../assets/download (10).jpg";
 const HomePage = () => {
   const navigate = useNavigate();
-  const [items, setItems] = useState([]);
-  const [businessNews, setBusinessNews] = useState([]);
-
-  useEffect(() => {
-    const fetchNews = async () => {
-      try {
-        const response = await axios.get(
-          "https://newsapi.org/v2/top-headlines?country=in&apiKey=caf9271140a44997b465a3280bbfdd4e"
-        );
-
-        
-        setItems(response.data.articles);
-      } catch (error) {
-        console.error("Error fetching news:", error);
-      }
-    };
-
-    fetchNews();
-  }, []);
-
-  useEffect(() => {
-    const fetchBusinessNews = async () => {
-      try {
-        const response = await axios.get(
-          "https://newsapi.org/v2/top-headlines?country=in&category=business&apiKey=caf9271140a44997b465a3280bbfdd4e"
-        );
-        setBusinessNews(response.data.articles);
-      } catch (error) {
-        console.error("Error fetching business news:", error);
-      }
-    };
-
-    fetchBusinessNews();
-  }, []);
 
   const renderImage = (url) => {
     return url ? <Card.Img variant="top" src={url} /> : null;
@@ -89,7 +55,7 @@ const HomePage = () => {
                 </Card.Body>
               </Card>
               <Card className="mb-4" style={{ width: "100%" }}>
-                <Card.Img variant="top" src="https://www.timesnownews.com/sports/cricket/blow-for-ms-dhoni-led-csk-as-star-all-rounder-pulls-out-of-ipl-2024-article-105447869" />
+                <Card.Img variant="top" src="https://static.tnn.in/thumb/msid-105447855,thumbsize-1701606,width-1280,height-720,resizemode-75/105447855.jpg" />
                 <Card.Body>
                   <Card.Title>Blow For MS Dhoni-led CSK As Star All-Rounder Pulls Out Of IPL 2024 - Times Now</Card.Title>
                   <Card.Text>

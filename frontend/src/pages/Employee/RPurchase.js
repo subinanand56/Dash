@@ -60,7 +60,8 @@ const RPurchase = () => {
     e.preventDefault();
 
     try {
-      
+      const employeeId = localStorage.getItem("eid");
+      console.log(employeeId);
       const promises = purchaseRequests.map(async (request) => {
         
         const productData = new FormData();
@@ -70,6 +71,7 @@ const RPurchase = () => {
         productData.append("branch", selectedBranch);
         productData.append("image", request.image);
         productData.append("date", request.date || currentDate);
+        productData.append("Eid", employeeId);
         productData.append("accepted", false);
        
         const { data } = await axios.post(
@@ -99,7 +101,7 @@ const RPurchase = () => {
 
   return (
     <Container>
-      <h5 className="text-center pt-3">Multiple Purchase Requests</h5>
+      <h5 className="text-center pt-5">Purchase Request</h5>
       <Form onSubmit={handleSubmit}>
         {purchaseRequests.map((request, index) => (
           <div key={index}>
@@ -137,7 +139,7 @@ const RPurchase = () => {
                 <Form.Group controlId={`price-${index}`}>
                   <Form.Label>Price:</Form.Label>
                   <Form.Control
-                    type="text"
+                    type="number"
                     value={request.price}
                     onChange={(e) => handlePurchaseRequestInputChange(index, e)}
                     name="price"

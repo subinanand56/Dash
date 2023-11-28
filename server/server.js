@@ -58,7 +58,6 @@ app.post("/register", (req, res) => {
     return res.json(result);
   });
 });
-
 app.post("/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
@@ -70,31 +69,44 @@ app.post("/login", (req, res) => {
     if (result.length > 0) {
       const roleQuery = "SELECT role FROM register WHERE email = ?";
       const branchQuery = "SELECT branch FROM register WHERE email = ?";
-      
+      const idQuery = "SELECT id FROM register WHERE email = ?"; // Fetch id column
+
       db.query(roleQuery, [email], (roleErr, roleResult) => {
         if (roleErr) return res.json(roleErr);
 
         if (roleResult.length > 0) {
-          // Fetch branch information after fetching role
           db.query(branchQuery, [email], (branchErr, branchResult) => {
             if (branchErr) return res.json(branchErr);
 
             if (branchResult.length > 0) {
-              const name = result[0].name;
-              const role = roleResult[0].role;
-              const branch = branchResult[0].branch;
+              db.query(idQuery, [email], (idErr, idResult) => { // Fetch id value
+                if (idErr) return res.json(idErr);
 
-              const token = jwt.sign(
-                { name, role, branch }, // Include branch information in the token payload
-                "qwertyuiopasdfghjklzxcvbnmqwertyui"
-              );
+                if (idResult.length > 0) {
+                  const eid = idResult[0].id; // Extract id value
 
-              return res.json({
-                success: true,
-                message: "Login successful",
-                role,
-                branch,
-                token,
+                  const role = roleResult[0].role;
+                  const branch = branchResult[0].branch;
+
+                  const token = jwt.sign(
+                    { eid, role, branch }, // Include id in the token payload
+                    "qwertyuiopasdfghjklzxcvbnmqwertyui"
+                  );
+
+                  return res.json({
+                    success: true,
+                    message: "Login successful",
+                    eid,
+                    role,
+                    branch,
+                    token,
+                  });
+                } else {
+                  return res.json({
+                    success: false,
+                    message: "Id not found for the user",
+                  });
+                }
               });
             } else {
               return res.json({
@@ -115,6 +127,7 @@ app.post("/login", (req, res) => {
     }
   });
 });
+
 
 
 app.get("/users", (req, res) => {
@@ -375,7 +388,7 @@ app.post("/purchase",(req, res) => {
     req.body.branch,
     req.body.companyName, 
     req.body.accepted,
-    req.body.date,    
+    req.body.date,
   ];
   db.query(sql, [data], (err, result) => {
     if (err) return res.json(err);
@@ -385,7 +398,7 @@ app.post("/purchase",(req, res) => {
 
 app.post("/purchaseimage",upload.single('image'),(req, res) => {
   const sql =
-    "INSERT INTO purchase (`productName`,`price`,`branch`,`companyName`,`accepted`,`date`,`image`)VALUES (?)";
+    "INSERT INTO purchase (`productName`,`price`,`branch`,`companyName`,`accepted`,`date`,`Eid`,`image`)VALUES (?)";
   const data = [
     req.body.productName,
     req.body.price,
@@ -393,13 +406,33 @@ app.post("/purchaseimage",upload.single('image'),(req, res) => {
     req.body.companyName, 
     req.body.accepted,
     req.body.date,
-    req.file.filename
+    req.body.Eid,
+    req.file.filename,  
   ];
   db.query(sql, [data], (err, result) => {
     if (err) return res.json(err);
     return res.json(result);
   });
 });
+
+app.get("/purchasedetails/:Eid", (req, res) => {
+  const Eid = req.params.Eid;
+  const sql = "SELECT * FROM purchase WHERE Eid = ?";
+  
+  db.query(sql, [Eid], (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: "Internal server error" });
+    }
+    
+    if (results.length === 0) {
+      return res.status(404).json({ message: "No purchases found for this Eid" });
+    }
+
+    return res.json({ purchases: results });
+  });
+});
+
+
 
 app.get("/getallrqst", (req, res) => {
   const { branch } = req.query;
@@ -502,9 +535,7 @@ app.get("/purchase/total", (req, res) => {
 
   db.query(sql, data, (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
-
     const totalPurchases = result[0].totalPurchases || 0;
-
     return res.json({ totalPurchases });
   });
 });

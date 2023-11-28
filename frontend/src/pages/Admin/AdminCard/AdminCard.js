@@ -63,6 +63,7 @@ const CompactCard = () => {
   useEffect(() => {
     fetchData();
     fetchExpensesData();
+    fetchPurchaseData();
   }, [fromDate, toDate, selectedBranch]);
 
 
@@ -78,6 +79,20 @@ const CompactCard = () => {
       setExpensesAmount(response.data.totalExpenses);
     } catch (error) {
       console.error("Error fetching expenses data: ", error);
+    }
+  };
+  const fetchPurchaseData = async () => {
+    try {
+      const response = await axios.get(`http://localhost:8081/purchase/total`, {
+        params: {
+          fromDate,
+          toDate,
+          branch: selectedBranch === "all" ? null : selectedBranch,
+        },
+      });
+      setPurchaseAmount(response.data.totalPurchases);
+    } catch (error) {
+      console.error("Error fetching purchase data: ", error);
     }
   };
 
@@ -98,6 +113,7 @@ const CompactCard = () => {
         <div className="radialBar">
           <span>Rs{salesAmount}</span>
           <span>Rs{expensesAmount}</span>
+          
           <span>Rs{purchaseAmount}</span>
         </div>
         <div className="Row">
@@ -195,6 +211,30 @@ const AdminCardContainer = styled.div`
       margin-bottom: 1rem; 
     }
   }
- 
+  @media screen and (max-width: 438px) {
+    .CompactCard .Row {
+      width: 100%;      
+      margin-left : 3rem;
+    }
+  }
+  @media screen and (max-width: 488px) {
+    .CompactCard .Row {
+      width: 100%;      
+      margin-left : 6rem;
+    }
+  }
+  @media screen and (max-width: 400px) {
+    .CompactCard .Row {
+      width: 100%;      
+      margin-left : 2rem;
+    }
+  }
+  @media screen and (max-width: 358px) {
+    .CompactCard .Row {
+      width: 100%;      
+      margin-left : 1rem;
+    }
+  }
+  
 `;
 export default CompactCard;

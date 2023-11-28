@@ -40,82 +40,59 @@ const AdminMaindashContainer = styled.div`
       align-items: center;
     }
   }
-  @media screen and (max-width: 511px) {
+  @media screen and (max-width: 678px) {
     .MainDash {
       align-items: center;
       margin-left: 22px;
     }
   }
-  @media screen and (max-width: 503px) {
+  @media screen and (max-width: 578px) {
     .MainDash {
       align-items: center;
       margin-left: 26px;
     }
   }
-  @media screen and (max-width: 488px) {
+  @media screen and (max-width: 568px) {
     .MainDash {
       align-items: center;
       margin-left: 28px;
     }
   }
-  @media screen and (max-width: 485px) {
+  @media screen and (max-width:  548px) {
     .MainDash {
       align-items: center;
-      margin-left: 30px;
+      margin-left: 60px;
     }
   }
-  @media screen and (max-width: 478px) {
+  @media screen and (max-width:  432px) {
     .MainDash {
       align-items: center;
-      margin-left: 36px
+      margin-left: 80px;
     }
   }
-  @media screen and (max-width: 476px) {
+ 
+  @media screen and (max-width:  388px) {
     .MainDash {
       align-items: center;
-      margin-left: 39px
+      margin-left: 80px;
     }
   }
-  @media screen and (max-width: 472px) {
+  @media screen and (max-width:  358px) {
     .MainDash {
       align-items: center;
-      margin-left: 42px
+      margin-left: 60px;
     }
   }
-  @media screen and (max-width: 464px) {
+  @media screen and (max-width:  344px) {
     .MainDash {
       align-items: center;
-      margin-left: 46px
+      margin-left: 80px;
     }
   }
-  @media screen and (max-width: 462px) {
+  @media screen and (max-width:  330px) {
     .MainDash {
       align-items: center;
-      margin-left: 48px
-    }
-  }
-  @media screen and (max-width: 375px) {
-    .MainDash {
-      align-items: center;
-      margin-left: 150px
-    }
-  }
-  @media screen and (max-width: 414px) {
-    .MainDash {
-      align-items: center;
-      margin-left: 120px
-    }
-  }
-  @media screen and (max-width: 430px) {
-    .MainDash {
-      align-items: center;
-      margin-left: 100px
-    }
-  }
-  @media screen and (max-width: 360px) {
-    .MainDash {
-      align-items: center;
-      margin-left: 160px
+      margin-left: 90px;
     }
   }
 `;

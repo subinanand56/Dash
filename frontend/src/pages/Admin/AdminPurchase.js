@@ -98,7 +98,7 @@ const AdminPurchase = () => {
 
   return (
     <Container>
-      <h5 className="text-center pt-3">Purchase</h5>
+      <h5 className="text-center pt-5">Purchase</h5>
       <Form onSubmit={handleSubmit}>
         {purchaseRequests.map((request, index) => (
           <div key={index}>
