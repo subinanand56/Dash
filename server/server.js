@@ -13,12 +13,14 @@ app.use(express.static('public'));
 app.listen(8081, () => {
   console.log("Server Running");
 });
-
+app.get("/", (req, res) => {
+  res.send("<h1>Welcome</h1>");
+});
 const db = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "",
-  database: "dashboard",
+  host: "db4free.net",
+  user: "amalkp141",
+  password: "amalkp141",
+  database: "development_test",
 });
 db.connect((err) => {
   if (err) {
@@ -69,7 +71,7 @@ app.post("/login", (req, res) => {
     if (result.length > 0) {
       const roleQuery = "SELECT role FROM register WHERE email = ?";
       const branchQuery = "SELECT branch FROM register WHERE email = ?";
-      const idQuery = "SELECT id FROM register WHERE email = ?"; // Fetch id column
+      const idQuery = "SELECT id FROM register WHERE email = ?"; 
 
       db.query(roleQuery, [email], (roleErr, roleResult) => {
         if (roleErr) return res.json(roleErr);
@@ -79,17 +81,17 @@ app.post("/login", (req, res) => {
             if (branchErr) return res.json(branchErr);
 
             if (branchResult.length > 0) {
-              db.query(idQuery, [email], (idErr, idResult) => { // Fetch id value
+              db.query(idQuery, [email], (idErr, idResult) => { 
                 if (idErr) return res.json(idErr);
 
                 if (idResult.length > 0) {
-                  const eid = idResult[0].id; // Extract id value
+                  const eid = idResult[0].id; 
 
                   const role = roleResult[0].role;
                   const branch = branchResult[0].branch;
 
                   const token = jwt.sign(
-                    { eid, role, branch }, // Include id in the token payload
+                    { eid, role, branch }, 
                     "qwertyuiopasdfghjklzxcvbnmqwertyui"
                   );
 
@@ -127,8 +129,6 @@ app.post("/login", (req, res) => {
     }
   });
 });
-
-
 
 app.get("/users", (req, res) => {
   const sql = "SELECT * FROM register ";
